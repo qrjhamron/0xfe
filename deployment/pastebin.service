@@ -1,0 +1,55 @@
+[Unit]
+Description=0xfe Secure Pastebin Service
+Documentation=https://anlica.icu/
+After=network.target
+
+[Service]
+# Security: User Isolation
+User=pastebin
+Group=pastebin
+DynamicUser=yes
+
+# Application Config
+Environment=RUST_LOG=info
+ExecStart=/opt/pastebin/bin/pastebin_cli
+WorkingDirectory=/opt/pastebin
+
+# Restart Policy
+Restart=always
+RestartSec=5
+
+# --- Hardening ---
+
+# File System
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/pastebin/storage
+ReadOnlyPaths=/opt/pastebin/config.toml
+
+# Kernel & Capabilities
+NoNewPrivileges=true
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+LockPersonality=true
+
+# Networking
+PrivateDevices=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+# Syscall Filtering
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Resource Limits
+LimitNOFILE=65536
+MemoryMax=1G
+CPUQuota=50%
+OOMScoreAdjust=-500
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  target:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - RUST_LOG=info
+    networks:
+      - test-net
+
+  tester:
+    image: python:3.9-slim
+    volumes:
+      - ./tests:/tests
+    command: sh -c "pip install requests && python /tests/security_check.py"
+    networks:
+      - test-net
+    depends_on:
+      - target
+
+networks:
+  test-net:

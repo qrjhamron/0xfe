@@ -1,0 +1,6 @@
+port = 3000
+database_url = "sqlite://data_test.db"
+max_upload_size = 524288000 # 500MB
+base_url = "https://anlica.icu"
+cert_path = "certs/cert.pem"
+key_path = "certs/key.pem"

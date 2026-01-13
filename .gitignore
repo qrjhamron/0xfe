@@ -1,0 +1,32 @@
+/target
+/target/
+**/*.rs.bk
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+*.log
+logs/*
+!logs/.gitkeep
+
+# Storage
+storage/*
+!storage/.gitkeep
+
+# Certificates
+certs/*
+!certs/.gitkeep
+
+# Configuration
+config.toml
+.env
+
+# MacOS
+.DS_Store
+
+# Temporary
+fetched_file
+*.lua
