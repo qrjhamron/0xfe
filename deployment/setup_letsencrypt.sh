@@ -1,11 +1,16 @@
 #!/bin/bash
-# Let's Encrypt TLS Certificate Setup for anlica.icu
+# Let's Encrypt TLS Certificate Setup
+# Configure DOMAIN and EMAIL below before running
 # Installs certbot, obtains certificate, sets up automatic renewal
 
 set -e
 
-DOMAIN="anlica.icu"
-EMAIL="lyciv@proton.me"
+# ============= CONFIGURATION =============
+# Edit these values for your deployment
+DOMAIN="${CERT_DOMAIN:-your-domain.com}"
+EMAIL="${CERT_EMAIL:-admin@your-domain.com}"
+# =========================================
+
 SERVICE_USER="pastebin"
 CERT_DIR="/etc/letsencrypt/live/${DOMAIN}"
 DEPLOYMENT_DIR="/opt/pastebin"

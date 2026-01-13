@@ -140,13 +140,13 @@ table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:.5em;bor
 <p>Interact via strictly compliant HTTP clients (curl, wget, httpie).</p>
 <pre>
 # Upload a file
-curl -F "file=@/path/to/secret.txt" https://anlica.icu/
+curl -F "file=@/path/to/secret.txt" ${BASE_URL}/
 
 # Pipeline Support
-cat config.yaml | curl -F "file=@-" https://anlica.icu/
+cat config.yaml | curl -F "file=@-" ${BASE_URL}/
 
 # Secure Options
-curl -F "file=@-" -F "burn=true" -F "expire=600" https://anlica.icu/
+curl -F "file=@-" -F "burn=true" -F "expire=600" ${BASE_URL}/
 </pre>
 </details>
 

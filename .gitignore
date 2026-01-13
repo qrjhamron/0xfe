@@ -7,6 +7,9 @@
 *.db-shm
 *.db-wal
 
+# Migrations (generated/custom)
+migrations/*.sql
+
 # Logs
 *.log
 logs/*

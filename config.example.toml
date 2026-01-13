@@ -1,6 +1,11 @@
 port = 3000
-database_url = "sqlite://data_test.db"
+database_url = "sqlite://data.db"
 max_upload_size = 524288000 # 500MB
-base_url = "https://anlica.icu"
+base_url = "https://your-domain.com"
 cert_path = "certs/cert.pem"
 key_path = "certs/key.pem"
+
+# Domain configuration for deployment scripts
+# Set these in config.toml (not committed to git)
+domain = "your-domain.com"
+admin_email = "admin@your-domain.com"
