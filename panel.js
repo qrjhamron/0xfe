@@ -243,7 +243,7 @@
     if (title==='NONE') { existing.forEach(node=>node.remove()); return; }
     const targets=[];
     for (const container of document.querySelectorAll('.board-layout-player, #board-layout-player-top, #board-layout-player-bottom')) {
-      const target=container.querySelector('.player-tagline, [class*="player-tagline"]')||container.querySelector('.player-component');
+      const target=container.querySelector('.cc-user-username-component, [data-test-element="user-tagline-username"], .player-tagline, [class*="player-tagline"]')||container.querySelector('.player-component');
       if (target&&!targets.includes(target)) targets.push(target);
     }
     const keep=new Set();
