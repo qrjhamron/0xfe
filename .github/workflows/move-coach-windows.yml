@@ -27,13 +27,13 @@ jobs:
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MoveCoach-Windows-v12
-          path: windows/Output/MoveCoach-Setup-v12.exe
+          name: MoveCoach-Windows-v13
+          path: windows/Output/MoveCoach-Setup-v13.exe
       - name: Publish installer release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: move-coach-v12-${{ github.run_id }}
-          name: Move Coach Windows V12 (${{ github.run_id }})
+          tag_name: move-coach-v13-${{ github.run_id }}
+          name: Move Coach Windows V13 (${{ github.run_id }})
           target_commitish: codex/move-coach-v12
           generate_release_notes: false
-          files: windows/Output/MoveCoach-Setup-v12.exe
+          files: windows/Output/MoveCoach-Setup-v13.exe
