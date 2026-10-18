@@ -46,7 +46,7 @@ setelah dipilih dari data kalibrasi.
 - **Cek pembaruan**: periksa rilis Windows terbaru dari GitHub tanpa mencari link manual.
 - **Kekuatan adaptif per fase**: sesuaikan budget secara konservatif untuk opening, middlegame, endgame, dan posisi taktis. Matikan toggle untuk memakai budget kalibrasi tetap.
 - **Mode mesin**: pilih Lc0 terkalibrasi atau Maia 3 gaya manusia jika worker Maia tersedia. Level tetap membatasi rentang latihan; Maia berjalan offline di CPU.
-- **Profil visual**: kartu gelap bergaya daftar pemain menampilkan avatar, gelar, bendera, diamond, rating, rank, dan rekor dekoratif. Data ini hanya tampilan lokal.
+- **Gelar profil game**: badge gelar visual ditempel di samping nama pemain pada kartu game Chess.com. Avatar dan kartu tetap milik halaman Chess.com; badge hanya dekorasi lokal.
 
 Panel mengikuti papan, orientasi, reload dan game baru. Identitas pemain
 menggunakan API atau profil Guest, bukan orientasi papan. Jika identitas belum

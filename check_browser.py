@@ -159,7 +159,7 @@ def main():
                 page.get_by_role('button',name=f'Elo {elo}',exact=True).click()
                 current=arrow();assert current['elo']==elo
                 snapshot=page.evaluate('window.__chessArrowCoach.read()')
-                assert set(snapshot['prefs'])=={'elo','engine','profileVisible','profileTitle','profileAvatar','enabled','color','width','side','autoMove','autoPremove','timeManagement','adaptiveDelay','adaptiveStrength','endgamePremove','advancedPremove','panelCollapsed','premoveLimit','premoveBreadth','premovePolicy','delay','cursorMs'}
+                assert set(snapshot['prefs'])=={'elo','engine','profileVisible','profileTitle','enabled','color','width','side','autoMove','autoPremove','timeManagement','adaptiveDelay','adaptiveStrength','endgamePremove','advancedPremove','panelCollapsed','premoveLimit','premoveBreadth','premovePolicy','delay','cursorMs'}
                 assert page.get_by_role('button',name=f'Elo {elo}',exact=True).get_attribute('aria-pressed')=='true'
                 deadline=time.monotonic()+5
                 while time.monotonic()<deadline:

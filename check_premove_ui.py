@@ -53,14 +53,9 @@ def main():
         q.get_by_label('Mode mesin',exact=True).select_option('maia3')
         assert q.evaluate('()=>__chessArrowCoach.poll().prefs.engine')=='maia3'
         q.get_by_label('Mode mesin',exact=True).select_option('calibrated')
-        assert q.locator('[data-field="profile-card"]').is_visible()
         q.get_by_label('Gelar visual',exact=True).select_option('IM')
-        assert q.locator('[data-field="profile-title"]').inner_text()=='IM'
-        q.get_by_label('URL avatar Chess.com',exact=True).fill('https://images.chesscomfiles.com/uploads/v1/user/example.png')
-        q.get_by_label('URL avatar Chess.com',exact=True).press('Tab')
-        assert 'chesscomfiles.com' in q.evaluate('()=>__chessArrowCoach.poll().prefs.profileAvatar')
+        assert q.locator('[data-move-coach-game-title]').all_inner_texts()==['IM','IM']
         q.get_by_label('Profil visual',exact=True).uncheck()
-        assert q.locator('[data-field="profile-card"]').is_hidden()
         assert q.locator('[data-move-coach-game-title]').count()==0
         q.get_by_label('Profil visual',exact=True).check()
         assert q.locator('[data-move-coach-game-title]').count()==2

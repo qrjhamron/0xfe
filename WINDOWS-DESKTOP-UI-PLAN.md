@@ -14,7 +14,7 @@ behavior stay shared so a UI migration does not silently change play.
   existing recommendation arrows. Board rendering and pointer hit-testing are
   separate from engine state so animation cannot delay a move result.
 - **Coach rail:** a fixed-width right rail for level buttons, engine status,
-  profile card, arrows, adaptive delay, premove queue, and compact
+  game-player title badge, arrows, adaptive delay, premove queue, and compact
   move/evaluation history. On narrow windows the rail becomes a bottom drawer;
   settings never cover the board permanently.
 - **Game strip:** clocks, side to move, runtime indicator, new game, pause, and
@@ -50,8 +50,8 @@ behavior stay shared so a UI migration does not silently change play.
 - Arrows have one clear primary recommendation, optional faint alternatives,
   and a legend that identifies source and freshness. A stale result disappears
   immediately when turn, game or FEN changes.
-- The profile card is presentation-only: title, rank, diamond, flag and record
-  never enter the account or online game state, and the card can be hidden.
+- The game-player title badge is presentation-only: it never enters the account
+  or online game state, and it can be hidden.
 - Every automation action has a stop shortcut (`Esc`) and a tray pause action.
 
 ## Delivery steps
