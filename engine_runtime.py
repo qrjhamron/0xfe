@@ -84,7 +84,7 @@ def _select_lc0_runtime():
     backend = explicit if explicit and explicit != 'auto' else None
     if backend not in supported:
         preferred = ('blas', 'openblas', 'eigen') if os.name == 'nt' else ('eigen', 'openblas', 'blas')
-        backend = next((name for name in preferred if name in supported), backend or preferred[-1])
+        backend = next((name for name in preferred if name in supported), backend or preferred[0])
     _LC0_RUNTIME.update(binary=cpu_binary, backend=backend, gpu=False)
     return cpu_binary, backend
 
