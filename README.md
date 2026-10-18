@@ -43,6 +43,7 @@ setelah dipilih dari data kalibrasi.
 - **Saya bermain**: deteksi otomatis, Putih, Hitam, atau kedua sisi untuk analisis.
 - **Warna / Tebal**: atur penampilan panah.
 - **Cek pembaruan**: periksa rilis Windows terbaru dari GitHub tanpa mencari link manual.
+- **Badge lokal**: pilih GM/IM/FM/NM/CM atau Coach dengan warna emblem; hanya dekorasi panel dan bertanda LOCAL.
 - **Kekuatan adaptif per fase**: sesuaikan budget secara konservatif untuk opening, middlegame, endgame, dan posisi taktis. Matikan toggle untuk memakai budget kalibrasi tetap.
 
 Panel mengikuti papan, orientasi, reload dan game baru. Identitas pemain
@@ -129,7 +130,7 @@ Antrean milik aplikasi dibatalkan ketika posisi tidak sesuai cabang yang diperik
 
 **Delay (ms)** 0–10000 ms (awal 1200) dan **Gerak kursor (ms)** 60–600 ms (awal 400) berlaku pada Auto move. **Time management** membaca jam pemain dan memendekkan delay ketika waktu tersisa kritis; **Adaptive delay** menambah waktu pada posisi bercabang atau taktis dan mengunci input Delay (ms) agar tidak bentrok. Matikan Adaptive delay untuk mengatur jeda manual. Preferensi lama tetap dipertahankan. Antrean premove dipasang melalui API situs; konsumsi dan waktu jam mengikuti aturan situs. Jika pengaturan menggulir papan ke luar layar, Auto move menampilkan papan kembali sebelum input mouse. Browser baru dibuka pada ukuran 1440×1000. Promosi Auto move memilih bidak rekomendasi otomatis, termasuk underpromotion; pemilih dideteksi lewat class, data attribute, atau label bidak. Jika pemilih tidak dikenali dalam 1,5 detik, otomatisasi dihentikan.
 
-Pada Windows, paket menyertakan build Lc0 GPU DirectML sebagai jalur opsional. Saat GPU terdeteksi dan backend didukung binary, engine memilih GPU secara otomatis; jika tidak, engine memakai CPU DNNL/BLAS. `LC0_FORCE_CPU=1` memaksa CPU, sedangkan `LC0_BACKEND` dapat memilih backend tertentu untuk diagnosis.
+Pada Windows, paket menyertakan build Lc0 GPU DirectML sebagai jalur opsional. Saat GPU terdeteksi dan backend didukung binary, engine memilih GPU secara otomatis; jika tidak, engine memakai CPU DNNL/BLAS. Status backend dan alasan fallback tampil di panel. `LC0_FORCE_CPU=1` memaksa CPU, sedangkan `LC0_BACKEND` dapat memilih backend tertentu untuk diagnosis.
 
 Panel menghitung **terpasang**, **terpakai**, **teramati**, **batal**, dan penolakan per game. Terpakai memerlukan event native dengan flag boolean `consumedPremove === true`, langkah yang cocok, dan FEN sesudah premove. Teramati berarti queue kosong dan FEN cocok tanpa event konsumsi yang terverifikasi; kedua jenis bukti tidak disamakan. Event ganda, fungsi yang kebetulan truthy, dan hasil dari game lain ditolak. Daemon menyimpan audit per game di `runtime/games/*.json`; gunakan `--audit-dir` untuk folder lain. Arsip distribusi tidak memuat audit atau sesi pengguna. Reload selalu mematikan otomatisasi.
 

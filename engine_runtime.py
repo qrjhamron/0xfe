@@ -75,22 +75,35 @@ def _gpu_present():
         return False
 
 
-_LC0_RUNTIME = {'binary': None, 'backend': None, 'gpu': False}
+_LC0_RUNTIME = {'binary': None, 'backend': None, 'gpu': False,
+                'detected': False, 'reason': 'Belum diperiksa'}
 
 
 def _select_lc0_runtime():
     """Choose a GPU Lc0 build when available, with a verified CPU fallback."""
     cpu_binary = ROOT / 'runtime' / ('lc0.exe' if os.name == 'nt' else 'lc0')
     gpu_binary = ROOT / 'runtime' / 'lc0-gpu.exe'
+    gpu_manifest = ROOT / 'runtime' / 'lc0-gpu-backend.txt'
     explicit = os.environ.get('LC0_BACKEND', '').strip().lower()
     gpu_backends = ('cudnn', 'cuda', 'opencl', 'onnx-dml', 'dml')
-    if gpu_binary.is_file() and (_gpu_present() or explicit in gpu_backends):
+    detected = _gpu_present()
+    _LC0_RUNTIME['detected'] = detected
+    gpu_ready = gpu_binary.is_file() and (os.name != 'nt' or gpu_manifest.is_file())
+    if gpu_ready and (detected or explicit in gpu_backends):
         supported = _supported_lc0_backends(str(gpu_binary))
         backend = explicit if explicit and explicit != 'auto' else next(
             (name for name in gpu_backends if name in supported), None)
         if backend and (not supported or backend in supported):
-            _LC0_RUNTIME.update(binary=gpu_binary, backend=backend, gpu=True)
+            _LC0_RUNTIME.update(binary=gpu_binary, backend=backend, gpu=True,
+                                reason=f'GPU terdeteksi · backend {backend}')
             return gpu_binary, backend
+        _LC0_RUNTIME['reason'] = 'GPU terdeteksi, tetapi backend DirectML tidak tersedia'
+    elif detected and not gpu_ready:
+        _LC0_RUNTIME['reason'] = 'GPU terdeteksi, tetapi paket GPU belum lengkap · memakai CPU'
+    elif detected:
+        _LC0_RUNTIME['reason'] = 'GPU terdeteksi, tetapi binary GPU tidak ditemukan'
+    else:
+        _LC0_RUNTIME['reason'] = 'GPU tidak terdeteksi · memakai CPU'
     supported = _supported_lc0_backends(str(cpu_binary))
     backend = explicit if explicit and explicit != 'auto' else None
     if backend not in supported:
@@ -106,6 +119,8 @@ def lc0_runtime_status():
         _select_lc0_runtime()
     return {'backend': _LC0_RUNTIME['backend'] or 'cpu',
             'gpu': bool(_LC0_RUNTIME['gpu']),
+            'detected': bool(_LC0_RUNTIME['detected']),
+            'reason': _LC0_RUNTIME['reason'],
             'label': ('GPU otomatis' if _LC0_RUNTIME['gpu'] else 'CPU otomatis')}
 
 
@@ -118,6 +133,7 @@ class EngineSpec:
     max_elo: int
     available: bool = True
     kind: str = "elo"
+    fallback_command: object = None
 
     def panel(self):
         return {'label': self.label, 'min': self.min_elo, 'max': self.max_elo,
@@ -136,12 +152,22 @@ def engine_specs(stockfish):
         'maia3': EngineSpec('maia3', 'Maia 3 · 5M', maia, 600, 2600,
                             (ROOT / 'runtime' / 'maia3-install.json').exists())}
     binary, backend = _select_lc0_runtime()
+    cpu_binary = ROOT / 'runtime' / ('lc0.exe' if os.name == 'nt' else 'lc0')
+    cpu_supported = _supported_lc0_backends(str(cpu_binary))
+    cpu_backend = next((name for name in (('blas', 'openblas', 'eigen') if os.name == 'nt'
+                                          else ('eigen', 'openblas', 'blas'))
+                        if name in cpu_supported), 'blas' if os.name == 'nt' else 'eigen')
     for key, (label, filename, _, size) in WEIGHTS.items():
         weight = ROOT / 'runtime' / 'lc0-weights' / (filename + '.pb.gz')
         command = [str(binary), '--weights=' + str(weight), '--backend=' + backend,
                    '--threads=1', '--minibatch-size=1', '--nncache=20000']
+        fallback = None
+        if _LC0_RUNTIME['gpu']:
+            fallback = [str(cpu_binary), '--weights=' + str(weight), '--backend=' + cpu_backend,
+                        '--threads=1', '--minibatch-size=1', '--nncache=20000']
         specs[key] = EngineSpec(key, f'Lc0 · {label} · {size}', command, 600, 3190,
-                               binary.is_file() and weight.is_file() and (ROOT / 'runtime/lc0-install.json').is_file(), 'nodes')
+                               binary.is_file() and weight.is_file() and (ROOT / 'runtime/lc0-install.json').is_file(),
+                               'nodes', fallback)
     return specs
 
 
@@ -188,6 +214,8 @@ def reconstruct_board(request):
 class EngineWorker:
     def __init__(self, spec, *, think=.4, threads=1, hash_mb=64, cache_size=128, idle_timeout=60):
         self.spec = spec
+        self.active_command = spec.command
+        self.using_fallback = False
         self.think, self.threads, self.hash_mb = think, threads, hash_mb
         self.cache_size = cache_size
         self.idle_timeout = idle_timeout
@@ -236,7 +264,7 @@ class EngineWorker:
         environment.update({'OMP_NUM_THREADS': str(self.threads), 'MKL_NUM_THREADS': str(self.threads),
                             'OPENBLAS_NUM_THREADS': str(self.threads), 'HF_HUB_OFFLINE': '1',
                             'HF_HOME': str(ROOT / 'runtime' / 'huggingface')})
-        self.engine = chess.engine.SimpleEngine.popen_uci(self.spec.command, timeout=20, env=environment)
+        self.engine = chess.engine.SimpleEngine.popen_uci(self.active_command, timeout=20, env=environment)
         if self.spec.key == 'stockfish':
             elo = self.engine.options.get('UCI_Elo')
             if not elo or 'UCI_LimitStrength' not in self.engine.options:
@@ -319,6 +347,12 @@ class EngineWorker:
                 return {**computed, 'cached': False}
             except (chess.engine.EngineError, TimeoutError, OSError) as exc:
                 self._drop_engine()
+                if self.spec.fallback_command and not self.using_fallback:
+                    self.active_command = self.spec.fallback_command
+                    self.using_fallback = True
+                    logging.warning('%s GPU unavailable (%s); falling back to CPU',
+                                    self.spec.label, type(exc).__name__)
+                    continue
                 if self.stopped:
                     return {'move': None, 'cached': False}
                 self.metrics['restarts'] += 1

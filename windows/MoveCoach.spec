@@ -17,6 +17,7 @@ required(RUNTIME / 'stockfish.exe')
 required(RUNTIME / 'lc0.exe')
 required(RUNTIME / 'lc0-gpu.exe')
 required(RUNTIME / 'onnxruntime.dll')
+required(RUNTIME / 'lc0-gpu-backend.txt')
 required(RUNTIME / 'dnnl.dll')
 required(RUNTIME / 'mimalloc-override.dll')
 required(RUNTIME / 'mimalloc-redirect.dll')
@@ -30,6 +31,7 @@ datas = [
     (str(PROJECT / 'calibration-profiles.json'), '.'),
     (str(PROJECT / 'opening_book.py'), '.'),
     (str(RUNTIME / 'lc0-install.json'), 'runtime'),
+    (str(RUNTIME / 'lc0-gpu-backend.txt'), 'runtime'),
 ]
 datas += [(str(RUNTIME / 'lc0-weights' / name), 'runtime/lc0-weights')
           for name in ('meangirl-7.pb.gz', 'evilgyal-6.pb.gz',

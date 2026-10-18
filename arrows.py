@@ -289,8 +289,13 @@ def run(args, specs):
                             continue
                         state.update(render=payload, failures=0, retry_at=0)
                         worker = pool.workers[result['engine']]
+                        runtime_status = lc0_runtime_status()
+                        if getattr(worker, 'using_fallback', False):
+                            runtime_status = {**runtime_status, 'gpu': False, 'label': 'CPU fallback',
+                                              'reason': 'GPU gagal dimuat · CPU fallback aktif'}
                         write_status(args.status, {**payload, 'engine': result['engine'], 'nodes': request.nodes, 'updated_at': time.time(),
                                                   'url': page.url.split('?', 1)[0],
+                                                  'runtime': runtime_status,
                                                   'strength_limited': result['engine'] == 'stockfish',
                                                   'threads': args.threads, 'hash_mb': args.hash_mb,
                                                   'node_multiplier': args.node_multiplier,

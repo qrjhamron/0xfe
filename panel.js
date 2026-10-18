@@ -23,6 +23,9 @@
       adaptiveStrength:value?.adaptiveStrength!==false,
       endgamePremove:value?.endgamePremove!==false, advancedPremove:value?.advancedPremove!==false, premoveLimit:1,
       panelCollapsed:value?.panelCollapsed===true,
+      badgeEnabled:value?.badgeEnabled!==false,
+      badgeTitle:['GM','IM','FM','NM','CM','WGM','WIM','COACH'].includes(String(value?.badgeTitle||''))?String(value.badgeTitle):'GM',
+      badgeStyle:['gold','silver','bronze','teal'].includes(value?.badgeStyle)?value.badgeStyle:'gold',
       premoveBreadth:[3,5,8].includes(Number(value?.premoveBreadth))?Number(value.premoveBreadth):5,
       premovePolicy:['strict','balanced','active'].includes(value?.premovePolicy)?value.premovePolicy:'balanced',
       delay:Math.min(10000,Math.max(0,Number.isFinite(Number(value?.delay))&&value?.delay!=null?Number(value.delay):1200)),
@@ -65,6 +68,14 @@
     #human-engine-panel .coach-collapse:focus-visible {outline:2px solid #a2efcf;outline-offset:2px}
     #human-engine-panel .coach-eyebrow {color:#75c4a5;font-size:10px;letter-spacing:1.4px;font-weight:750}
     #human-engine-panel h2 {margin:3px 0 0;color:#f2f5f3;font-size:18px;line-height:1.2;font-weight:750}
+    #human-engine-panel .coach-title-row {display:flex;align-items:center;gap:8px}
+    #human-engine-panel .coach-badge {display:inline-flex;align-items:center;gap:4px;border:1px solid #f1d487;border-radius:999px;padding:3px 7px 3px 6px;background:linear-gradient(135deg,#8a5a16,#f5d77a 55%,#9b681e);color:#fff8db;font:800 10px/1 system-ui;letter-spacing:.5px;box-shadow:0 1px 5px #0004}
+    #human-engine-panel .coach-badge::before {content:'♛';font-size:12px;line-height:1}
+    #human-engine-panel .coach-badge[data-style=silver] {border-color:#e5edf0;background:linear-gradient(135deg,#59636a,#edf3f5 55%,#657078);color:#162126}
+    #human-engine-panel .coach-badge[data-style=bronze] {border-color:#efb37d;background:linear-gradient(135deg,#6f381f,#efae77 55%,#75381f)}
+    #human-engine-panel .coach-badge[data-style=teal] {border-color:#8ee5cf;background:linear-gradient(135deg,#0d665d,#6ce2c0 55%,#126b62);color:#e8fff8}
+    #human-engine-panel .coach-badge small {font-size:7px;opacity:.8;letter-spacing:.7px}
+    #human-engine-panel .coach-badge-settings {display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #34463b}
     #human-engine-panel .coach-switch {display:flex;align-items:center;gap:6px;color:#cad8cf;font-size:12px;cursor:pointer}
     #human-engine-panel input[type=checkbox] {appearance:auto;width:17px;height:17px;accent-color:#20c4a0;margin:0}
     #human-engine-panel .coach-status {display:flex;align-items:center;gap:7px;margin:14px 0 10px;color:#b7c9bd;font-size:12px}
@@ -107,7 +118,7 @@
   panel.id = 'human-engine-panel';
   panel.setAttribute('aria-label','Kontrol panah');
   panel.innerHTML = `
-    <div class="coach-head"><div><div class="coach-eyebrow" data-field="engine-name">LEVEL LATIHAN · GUEST</div><h2>Move Coach</h2></div>
+    <div class="coach-head"><div><div class="coach-eyebrow" data-field="engine-name">LEVEL LATIHAN · GUEST</div><div class="coach-title-row"><h2>Move Coach</h2><span class="coach-badge" data-field="badge" data-style="gold"><span data-field="badge-title">GM</span><small>LOCAL</small></span></div></div>
       <div class="coach-head-actions"><button type="button" class="coach-collapse" data-action="collapse" aria-label="Tutup panel" aria-expanded="true">⌃</button>
       <label class="coach-switch"><input type="checkbox" aria-label="Panah aktif"><span>Aktif</span></label></div></div>
     <div class="coach-status" role="status" aria-live="polite"><span class="coach-dot"></span><span data-field="status">Membaca posisi…</span></div>
@@ -139,8 +150,13 @@
     <details><summary>Cabang balasan</summary><div data-field="premove-plan">Aktifkan Auto premove untuk membaca cabang.</div></details>
     <div class="coach-appearance"><label>Warna<input type="color" aria-label="Warna panah"></label>
       <label style="margin-left:auto">Tebal<input type="range" aria-label="Ketebalan panah" min="6" max="26" step="1"><span data-field="width"></span></label></div>
+    <div class="coach-badge-settings"><label class="coach-switch"><input type="checkbox" aria-label="Badge lokal">Badge lokal</label>
+      <label class="coach-field">Gelar<select aria-label="Gelar badge"><option>GM</option><option>IM</option><option>FM</option><option>NM</option><option>CM</option><option>WGM</option><option>WIM</option><option>COACH</option></select></label>
+      <label class="coach-field">Warna badge<select aria-label="Warna badge"><option value="gold">Emas</option><option value="silver">Perak</option><option value="bronze">Perunggu</option><option value="teal">Teal</option></select></label>
+      <span class="coach-footer">Badge lokal · dekorasi saja</span></div>
     <p data-field="error" role="alert"></p><p class="coach-footer" data-field="footer">Level latihan · rekomendasi saat giliranmu</p>
-    <div class="coach-update"><button type="button" data-action="update">Cek pembaruan</button><span data-field="update-status">Versi ${defaults.appVersion||'13'} · ${runtime.label||'CPU otomatis'}</span></div>
+    <div class="coach-update"><button type="button" data-action="update">Cek pembaruan</button><span data-field="update-status">Versi ${defaults.appVersion||'13'}</span></div>
+    <p class="coach-footer" data-field="runtime-status">${runtime.label||'CPU otomatis'} · ${runtime.reason||'Status engine lokal'}</p>
   `;
   const head = panel.firstElementChild;
   const body = document.createElement('div');
@@ -207,6 +223,9 @@
     panel.querySelector('[aria-label="Durasi kursor"]').value=String(prefs.cursorMs);
     panel.querySelector('[aria-label="Cabang premove"]').value=String(prefs.premoveBreadth);
     panel.querySelector('[aria-label="Pola premove"]').value=prefs.premovePolicy;
+    panel.querySelector('[aria-label="Badge lokal"]').checked=prefs.badgeEnabled;
+    panel.querySelector('[aria-label="Gelar badge"]').value=prefs.badgeTitle;
+    panel.querySelector('[aria-label="Warna badge"]').value=prefs.badgeStyle;
     input.enabled.checked=prefs.enabled;input.side.value=prefs.side;
     input.color.value=prefs.color; input.width.value=String(prefs.width);
     body.hidden=prefs.panelCollapsed;
@@ -216,8 +235,14 @@
     collapse.setAttribute('aria-label',prefs.panelCollapsed?'Buka panel':'Tutup panel');
     collapse.textContent=prefs.panelCollapsed?'⌄':'⌃';
     text('width',String(prefs.width));
+    const badge=field('badge');
+    badge.hidden=!prefs.badgeEnabled;
+    badge.style.display=prefs.badgeEnabled?'inline-flex':'none';
+    badge.dataset.style=prefs.badgeStyle;
+    text('badge-title',prefs.badgeTitle);
     panel.querySelector('.coach-switch span').textContent=prefs.enabled ? 'Aktif' : 'Nonaktif';
     text('engine-name',`LEVEL ${prefs.elo} · GUEST`);
+    text('runtime-status',`${runtime.label||'CPU otomatis'} · ${runtime.reason||'Status engine lokal'}`);
     const evidence=choices[prefs.elo];
     text('footer',`${evidence.target_within_interval?'Level latihan':'Target tentatif'} · estimasi lokal ≈${Math.round(evidence.estimate/10)*10}`);
   }
@@ -260,6 +285,9 @@
   panel.querySelector('[aria-label="Durasi kursor"]').addEventListener('change',e=>save({cursorMs:Number(e.target.value)}));
   panel.querySelector('[aria-label="Cabang premove"]').addEventListener('change',e=>save({premoveBreadth:Number(e.target.value)}));
   panel.querySelector('[aria-label="Pola premove"]').addEventListener('change',e=>save({premovePolicy:e.target.value}));
+  panel.querySelector('[aria-label="Badge lokal"]').addEventListener('change',e=>save({badgeEnabled:e.target.checked}));
+  panel.querySelector('[aria-label="Gelar badge"]').addEventListener('change',e=>save({badgeTitle:e.target.value}));
+  panel.querySelector('[aria-label="Warna badge"]').addEventListener('change',e=>save({badgeStyle:e.target.value}));
   updateButton.addEventListener('click',checkUpdate);
   panel.querySelector('[data-action="site-premove"]').addEventListener('click',()=>{
     const gameSettings=[...document.querySelectorAll('button[aria-label="Settings"]')].find(e=>e.id!=='board-controls-settings');

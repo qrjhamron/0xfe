@@ -66,6 +66,7 @@ if (-not (Test-Path 'runtime\lc0-gpu.exe') -or -not (Test-Path 'runtime\onnxrunt
     $OnnxSource = Join-Path $GpuExtract 'onnxruntime.dll'
     if (-not (Test-Path $OnnxSource)) { throw 'Lc0 GPU archive is missing onnxruntime.dll.' }
     Copy-Item $OnnxSource 'runtime\onnxruntime.dll' -Force
+    Set-Content -Path 'runtime\lc0-gpu-backend.txt' -Value 'onnx-dml' -NoNewline
 }
 & $VenvPython setup_lc0.py --lc0 runtime\lc0.exe
 if ($LASTEXITCODE -ne 0) { throw 'Lc0 and weight installation failed.' }

@@ -47,6 +47,15 @@ def main():
         q.get_by_label('Adaptive auto move delay',exact=True).check()
         assert delay.is_disabled()
         print('PASS: adaptive delay locks the manual delay field and restores it when disabled')
+        assert q.locator('[data-field="badge"]').is_visible()
+        q.get_by_label('Gelar badge',exact=True).select_option('IM')
+        q.get_by_label('Warna badge',exact=True).select_option('teal')
+        assert q.locator('[data-field="badge-title"]').inner_text()=='IM'
+        assert q.locator('[data-field="badge"]').get_attribute('data-style')=='teal'
+        q.get_by_label('Badge lokal',exact=True).uncheck()
+        assert q.locator('[data-field="badge"]').is_hidden()
+        q.get_by_label('Badge lokal',exact=True).check()
+        print('PASS: local badge title, color, and visibility persist in the panel')
         print('PASS: panel opens/closes from the header without removing the arrow coach state')
         q.get_by_label('Auto premove',exact=True).check()
         q.get_by_label('Cabang premove',exact=True).select_option('8')

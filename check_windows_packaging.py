@@ -15,7 +15,7 @@ def main():
     ]
     assert all(path.is_file() for path in required)
     spec = (ROOT / 'windows/MoveCoach.spec').read_text()
-    assert "name='MoveCoach'" in spec and "'stockfish.exe'" in spec and "'lc0-gpu.exe'" in spec and "'onnxruntime.dll'" in spec
+    assert "name='MoveCoach'" in spec and "'stockfish.exe'" in spec and "'lc0-gpu.exe'" in spec and "'onnxruntime.dll'" in spec and "'lc0-gpu-backend.txt'" in spec
     assert 'COLLECT(' in spec and "name='MoveCoach'" in spec
     iss = (ROOT / 'windows/MoveCoach.iss').read_text()
     assert 'MoveCoach-Setup-v13' in iss and 'PrivilegesRequired=lowest' in iss
