@@ -1,6 +1,6 @@
 .venv/
 runtime/
-windows/release-v12/
+windows/release-*/
 windows/artifact*/
 browser-profile/
 *.log
