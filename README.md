@@ -10,7 +10,7 @@ Pilihan level dan penampilan disimpan serta disinkronkan antartab.
 
 Versi Windows dibangun sebagai installer per-user `MoveCoach-Setup-v13.exe`.
 Build memakai PyInstaller dan Inno Setup; Lc0 CPU Windows DNNL dan binary GPU
-CUDA opsional diambil dari rilis terpin, diverifikasi checksum, lalu dipasang
+DirectML opsional diambil dari rilis terpin, diverifikasi checksum, lalu dipasang
 bersama Stockfish dan empat weight. Chrome atau Edge yang sudah ada dipakai oleh
 launcher. Instruksi build
 ada di [windows/README.md](windows/README.md). Maia tidak termasuk paket dasar
@@ -129,7 +129,7 @@ Antrean milik aplikasi dibatalkan ketika posisi tidak sesuai cabang yang diperik
 
 **Delay (ms)** 0–10000 ms (awal 1200) dan **Gerak kursor (ms)** 60–600 ms (awal 400) berlaku pada Auto move. **Time management** membaca jam pemain dan memendekkan delay ketika waktu tersisa kritis; **Adaptive delay** menambah waktu pada posisi bercabang atau taktis dan mengunci input Delay (ms) agar tidak bentrok. Matikan Adaptive delay untuk mengatur jeda manual. Preferensi lama tetap dipertahankan. Antrean premove dipasang melalui API situs; konsumsi dan waktu jam mengikuti aturan situs. Jika pengaturan menggulir papan ke luar layar, Auto move menampilkan papan kembali sebelum input mouse. Browser baru dibuka pada ukuran 1440×1000. Promosi Auto move memilih bidak rekomendasi otomatis, termasuk underpromotion; pemilih dideteksi lewat class, data attribute, atau label bidak. Jika pemilih tidak dikenali dalam 1,5 detik, otomatisasi dihentikan.
 
-Pada Windows, paket menyertakan build Lc0 GPU CUDA sebagai jalur opsional. Saat `nvidia-smi` mendeteksi GPU dan backend didukung binary, engine memilih GPU secara otomatis; jika tidak, engine memakai CPU DNNL/BLAS. `LC0_FORCE_CPU=1` memaksa CPU, sedangkan `LC0_BACKEND` dapat memilih backend tertentu untuk diagnosis.
+Pada Windows, paket menyertakan build Lc0 GPU DirectML sebagai jalur opsional. Saat GPU terdeteksi dan backend didukung binary, engine memilih GPU secara otomatis; jika tidak, engine memakai CPU DNNL/BLAS. `LC0_FORCE_CPU=1` memaksa CPU, sedangkan `LC0_BACKEND` dapat memilih backend tertentu untuk diagnosis.
 
 Panel menghitung **terpasang**, **terpakai**, **teramati**, **batal**, dan penolakan per game. Terpakai memerlukan event native dengan flag boolean `consumedPremove === true`, langkah yang cocok, dan FEN sesudah premove. Teramati berarti queue kosong dan FEN cocok tanpa event konsumsi yang terverifikasi; kedua jenis bukti tidak disamakan. Event ganda, fungsi yang kebetulan truthy, dan hasil dari game lain ditolak. Daemon menyimpan audit per game di `runtime/games/*.json`; gunakan `--audit-dir` untuk folder lain. Arsip distribusi tidak memuat audit atau sesi pengguna. Reload selalu mematikan otomatisasi.
 

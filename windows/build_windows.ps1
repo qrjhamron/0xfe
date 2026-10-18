@@ -45,11 +45,11 @@ if (-not (Test-Path 'runtime\lc0.exe') -or -not (Test-Path 'runtime\dnnl.dll')) 
         Copy-Item $Source (Join-Path 'runtime' $Name) -Force
     }
 }
-if (-not (Test-Path 'runtime\lc0-gpu.exe')) {
-    # Optional-driver CUDA build.  The app selects it only when nvidia-smi
-    # reports a GPU; machines without CUDA continue using the CPU-DNNL build.
-    $GpuUrl = 'https://github.com/LeelaChessZero/lc0/releases/download/v0.32.1/lc0-v0.32.1-windows-gpu-nvidia-cuda12-nodll.zip'
-    $GpuSha256 = '4E88D897E4C415ED1CEEDE29FF971255D1932FD6642553FC12E32353AED562C4'
+if (-not (Test-Path 'runtime\lc0-gpu.exe') -or -not (Test-Path 'runtime\onnxruntime.dll')) {
+    # Optional DirectML build. It uses the Windows graphics runtime and does
+    # not require cudart64_12.dll or a separately installed CUDA toolkit.
+    $GpuUrl = 'https://github.com/LeelaChessZero/lc0/releases/download/v0.32.1/lc0-v0.32.1-windows-onnx-dml.zip'
+    $GpuSha256 = '86AAC242B3A1C6986D02ACC33B8CC64175B11A21B6941C62443C07FA18AC7539'
     $GpuTemp = Join-Path ([IO.Path]::GetTempPath()) 'move-coach-lc0-gpu-v13'
     New-Item -ItemType Directory -Force $GpuTemp | Out-Null
     $GpuArchive = Join-Path $GpuTemp 'lc0-gpu.zip'
@@ -63,6 +63,9 @@ if (-not (Test-Path 'runtime\lc0-gpu.exe')) {
     $GpuSource = Join-Path $GpuExtract 'lc0.exe'
     if (-not (Test-Path $GpuSource)) { throw 'Lc0 GPU archive is missing lc0.exe.' }
     Copy-Item $GpuSource 'runtime\lc0-gpu.exe' -Force
+    $OnnxSource = Join-Path $GpuExtract 'onnxruntime.dll'
+    if (-not (Test-Path $OnnxSource)) { throw 'Lc0 GPU archive is missing onnxruntime.dll.' }
+    Copy-Item $OnnxSource 'runtime\onnxruntime.dll' -Force
 }
 & $VenvPython setup_lc0.py --lc0 runtime\lc0.exe
 if ($LASTEXITCODE -ne 0) { throw 'Lc0 and weight installation failed.' }

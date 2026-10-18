@@ -47,12 +47,23 @@ def _supported_lc0_backends(binary):
 
 
 @lru_cache(maxsize=1)
-def _nvidia_gpu_present():
-    """Return whether an NVIDIA driver exposes a usable GPU probe."""
+def _gpu_present():
+    """Return whether Windows or an NVIDIA driver exposes a GPU probe."""
     if _env_true('LC0_FORCE_CPU'):
         return False
     if _env_true('LC0_USE_GPU'):
         return True
+    if os.name == 'nt':
+        powershell = shutil.which('powershell') or shutil.which('pwsh')
+        if powershell:
+            script = "(Get-CimInstance Win32_VideoController | Where-Object {$_.Name -notmatch 'Microsoft Basic|Remote Display'} | Measure-Object).Count"
+            try:
+                probe = subprocess.run([powershell, '-NoProfile', '-NonInteractive', '-Command', script],
+                                       capture_output=True, text=True, timeout=4, check=False)
+                if probe.returncode == 0 and int((probe.stdout or '0').strip() or 0) > 0:
+                    return True
+            except (OSError, ValueError, subprocess.SubprocessError):
+                pass
     nvidia_smi = shutil.which('nvidia-smi')
     if not nvidia_smi:
         return False
@@ -73,7 +84,7 @@ def _select_lc0_runtime():
     gpu_binary = ROOT / 'runtime' / 'lc0-gpu.exe'
     explicit = os.environ.get('LC0_BACKEND', '').strip().lower()
     gpu_backends = ('cudnn', 'cuda', 'opencl', 'onnx-dml', 'dml')
-    if gpu_binary.is_file() and (_nvidia_gpu_present() or explicit in gpu_backends):
+    if gpu_binary.is_file() and (_gpu_present() or explicit in gpu_backends):
         supported = _supported_lc0_backends(str(gpu_binary))
         backend = explicit if explicit and explicit != 'auto' else next(
             (name for name in gpu_backends if name in supported), None)

@@ -16,6 +16,7 @@ def required(path):
 required(RUNTIME / 'stockfish.exe')
 required(RUNTIME / 'lc0.exe')
 required(RUNTIME / 'lc0-gpu.exe')
+required(RUNTIME / 'onnxruntime.dll')
 required(RUNTIME / 'dnnl.dll')
 required(RUNTIME / 'mimalloc-override.dll')
 required(RUNTIME / 'mimalloc-redirect.dll')
@@ -37,6 +38,7 @@ binaries = [
     (str(RUNTIME / 'stockfish.exe'), 'runtime'),
     (str(RUNTIME / 'lc0.exe'), 'runtime'),
     (str(RUNTIME / 'lc0-gpu.exe'), 'runtime'),
+    (str(RUNTIME / 'onnxruntime.dll'), 'runtime'),
     (str(RUNTIME / 'dnnl.dll'), 'runtime'),
     (str(RUNTIME / 'mimalloc-override.dll'), 'runtime'),
     (str(RUNTIME / 'mimalloc-redirect.dll'), 'runtime'),
