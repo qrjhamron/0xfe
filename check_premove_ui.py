@@ -37,8 +37,9 @@ def main():
               'configId':'v10-native-contract'}
         q.evaluate((ROOT/'panel.js').read_text(),opts)
         assert q.get_by_label('Tutup panel',exact=True).count()==1
-        assert q.locator('[data-move-coach-game-title]').count()==2
-        assert q.locator('[data-move-coach-game-title]').all_inner_texts()==['GM','GM']
+        assert q.locator('[data-move-coach-game-title]').count()==1
+        assert q.locator('#board-layout-player-bottom [data-move-coach-game-title]').all_inner_texts()==['GM']
+        assert q.locator('#board-layout-player-top [data-move-coach-game-title]').count()==0
         q.get_by_label('Tutup panel',exact=True).click()
         assert q.locator('.coach-body').is_hidden()
         assert q.get_by_label('Buka panel',exact=True).count()==1
@@ -54,11 +55,11 @@ def main():
         assert q.evaluate('()=>__chessArrowCoach.poll().prefs.engine')=='maia3'
         q.get_by_label('Mode mesin',exact=True).select_option('calibrated')
         q.get_by_label('Gelar visual',exact=True).select_option('IM')
-        assert q.locator('[data-move-coach-game-title]').all_inner_texts()==['IM','IM']
+        assert q.locator('[data-move-coach-game-title]').all_inner_texts()==['IM']
         q.get_by_label('Profil visual',exact=True).uncheck()
         assert q.locator('[data-move-coach-game-title]').count()==0
         q.get_by_label('Profil visual',exact=True).check()
-        assert q.locator('[data-move-coach-game-title]').count()==2
+        assert q.locator('[data-move-coach-game-title]').count()==1
         print('PASS: adaptive delay locks the manual delay field and restores it when disabled')
         print('PASS: panel opens/closes from the header without removing the arrow coach state')
         q.get_by_label('Auto premove',exact=True).check()

@@ -242,7 +242,10 @@
     const title=prefs.profileVisible?prefs.profileTitle:'NONE';
     if (title==='NONE') { existing.forEach(node=>node.remove()); return; }
     const targets=[];
-    for (const container of document.querySelectorAll('.board-layout-player, #board-layout-player-top, #board-layout-player-bottom')) {
+    // Chess.com keeps the local player's card at the bottom of the board,
+    // including when the board is flipped for Black. Limit the decorative
+    // badge to that card so the opponent never receives our local title.
+    for (const container of document.querySelectorAll('#board-layout-player-bottom, .board-layout-player.board-layout-bottom')) {
       const target=container.querySelector('.cc-user-username-component, [data-test-element="user-tagline-username"], .player-tagline, [class*="player-tagline"]')||container.querySelector('.player-component');
       if (target&&!targets.includes(target)) targets.push(target);
     }
