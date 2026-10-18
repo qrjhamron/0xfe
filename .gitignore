@@ -1,5 +1,7 @@
 .venv/
 runtime/
+windows/release-v12/
+windows/artifact*/
 browser-profile/
 *.log
 status.json
