@@ -54,6 +54,9 @@ def main():
         assert q.locator('[data-field="profile-card"]').is_visible()
         q.get_by_label('Gelar visual',exact=True).select_option('IM')
         assert q.locator('[data-field="profile-title"]').inner_text()=='IM'
+        q.get_by_label('URL avatar Chess.com',exact=True).fill('https://images.chesscomfiles.com/uploads/v1/user/example.png')
+        q.get_by_label('URL avatar Chess.com',exact=True).press('Tab')
+        assert 'chesscomfiles.com' in q.evaluate('()=>__chessArrowCoach.poll().prefs.profileAvatar')
         q.get_by_label('Profil visual',exact=True).uncheck()
         assert q.locator('[data-field="profile-card"]').is_hidden()
         q.get_by_label('Profil visual',exact=True).check()
