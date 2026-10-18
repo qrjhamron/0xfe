@@ -34,6 +34,13 @@ def main():
         presets={str(n):dict(available=True,estimate=n,interval=[n-100,n+100],games=60,target_within_interval=True) for n in range(1500,2301,100)}
         opts={'defaults':{'elo':1500},'presets':presets,'configId':'v10-native-contract'}
         q.evaluate((ROOT/'panel.js').read_text(),opts)
+        assert q.get_by_label('Tutup panel',exact=True).count()==1
+        q.get_by_label('Tutup panel',exact=True).click()
+        assert q.locator('.coach-body').is_hidden()
+        assert q.get_by_label('Buka panel',exact=True).count()==1
+        q.get_by_label('Buka panel',exact=True).click()
+        assert q.locator('.coach-body').is_visible()
+        print('PASS: panel opens/closes from the header without removing the arrow coach state')
         q.get_by_label('Auto premove',exact=True).check()
         q.get_by_label('Cabang premove',exact=True).select_option('8')
         def read():return q.evaluate('()=>__chessArrowCoach.poll()')

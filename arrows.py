@@ -150,7 +150,7 @@ def run(args, specs):
                         try:
                             response = page.evaluate(POLL)
                             snapshot = response.get('snapshot')
-                            if response.get('version') != 11 or response.get('configId') != panel_id:
+                            if response.get('version') != 12 or response.get('configId') != panel_id:
                                 snapshot = page.evaluate(panel, panel_options)
                             if snapshot:
                                 native_audit=page.evaluate('()=>window.__chessArrowCoach?.audit()')

@@ -1,5 +1,5 @@
 ({defaults, presets, configId}) => {
-  const VERSION = 11;
+  const VERSION = 12;
   const GLOBAL = '__chessArrowCoach';
   if (window[GLOBAL]?.version === VERSION && window[GLOBAL]?.configId === configId) return window[GLOBAL].read();
   window[GLOBAL]?.destroy();
@@ -10,7 +10,7 @@
   const choices=presets;
   const levels=Object.keys(choices).map(Number).sort((a,b)=>a-b);
   const initial = {enabled:true, elo:defaults.elo||1500, color:'#20c4a0', width:14,
-    autoMove:false, autoPremove:false, timeManagement:true, adaptiveDelay:true, adaptiveStrength:true, endgamePremove:true, advancedPremove:true, premoveLimit:1, delay:1200, cursorMs:400, side:defaults.bothSides ? 'both' : 'auto'};
+    autoMove:false, autoPremove:false, timeManagement:true, adaptiveDelay:true, adaptiveStrength:true, endgamePremove:true, advancedPremove:true, panelCollapsed:false, premoveLimit:1, delay:1200, cursorMs:400, side:defaults.bothSides ? 'both' : 'auto'};
   const clean = value => {
     const wanted=Number(value?.elo)||initial.elo;
     const available=levels.filter(elo=>choices[elo].available);
@@ -22,6 +22,7 @@
       timeManagement:value?.timeManagement!==false, adaptiveDelay:value?.adaptiveDelay!==false,
       adaptiveStrength:value?.adaptiveStrength!==false,
       endgamePremove:value?.endgamePremove!==false, advancedPremove:value?.advancedPremove!==false, premoveLimit:1,
+      panelCollapsed:value?.panelCollapsed===true,
       premoveBreadth:[3,5,8].includes(Number(value?.premoveBreadth))?Number(value.premoveBreadth):5,
       premovePolicy:['strict','balanced','active'].includes(value?.premovePolicy)?value.premovePolicy:'balanced',
       delay:Math.min(10000,Math.max(0,Number.isFinite(Number(value?.delay))&&value?.delay!=null?Number(value.delay):1200)),
@@ -57,6 +58,11 @@
       border-radius:14px;font:13px/1.4 system-ui,sans-serif;box-shadow:0 6px 20px #0002;text-align:left}
     #human-engine-panel * {box-sizing:border-box}
     #human-engine-panel .coach-head {display:flex;align-items:center;justify-content:space-between;gap:12px}
+    #human-engine-panel[data-collapsed=true] {padding-bottom:11px}
+    #human-engine-panel .coach-head-actions {display:flex;align-items:center;gap:8px}
+    #human-engine-panel .coach-collapse {width:30px;height:28px;padding:0;border:1px solid #465b4d;border-radius:7px;background:#17241c;color:#c4d1c8;font:700 16px/1 system-ui;cursor:pointer}
+    #human-engine-panel .coach-collapse:hover {background:#2b4435;border-color:#76a88a}
+    #human-engine-panel .coach-collapse:focus-visible {outline:2px solid #a2efcf;outline-offset:2px}
     #human-engine-panel .coach-eyebrow {color:#75c4a5;font-size:10px;letter-spacing:1.4px;font-weight:750}
     #human-engine-panel h2 {margin:3px 0 0;color:#f2f5f3;font-size:18px;line-height:1.2;font-weight:750}
     #human-engine-panel .coach-switch {display:flex;align-items:center;gap:6px;color:#cad8cf;font-size:12px;cursor:pointer}
@@ -94,7 +100,8 @@
   panel.setAttribute('aria-label','Kontrol panah');
   panel.innerHTML = `
     <div class="coach-head"><div><div class="coach-eyebrow" data-field="engine-name">LEVEL LATIHAN · GUEST</div><h2>Move Coach</h2></div>
-      <label class="coach-switch"><input type="checkbox" aria-label="Panah aktif"><span>Aktif</span></label></div>
+      <div class="coach-head-actions"><button type="button" class="coach-collapse" data-action="collapse" aria-label="Tutup panel" aria-expanded="true">⌃</button>
+      <label class="coach-switch"><input type="checkbox" aria-label="Panah aktif"><span>Aktif</span></label></div></div>
     <div class="coach-status" role="status" aria-live="polite"><span class="coach-dot"></span><span data-field="status">Membaca posisi…</span></div>
     <div class="coach-recommendation"><strong data-field="move">—</strong><span data-field="detail">Menunggu posisi</span></div>
     <div class="coach-field" id="coach-elo-label">Pilih Elo</div>
@@ -126,6 +133,11 @@
       <label style="margin-left:auto">Tebal<input type="range" aria-label="Ketebalan panah" min="6" max="26" step="1"><span data-field="width"></span></label></div>
     <p data-field="error" role="alert"></p><p class="coach-footer" data-field="footer">Elo perkiraan · rekomendasi saat giliranmu</p>
   `;
+  const head = panel.firstElementChild;
+  const body = document.createElement('div');
+  body.className = 'coach-body';
+  while (panel.children.length > 1) body.append(panel.children[1]);
+  panel.append(body);
   const input = {
     enabled:panel.querySelector('[aria-label="Panah aktif"]'),
     side:panel.querySelector('[aria-label="Warna pemain"]'), color:panel.querySelector('[aria-label="Warna panah"]'),
@@ -160,6 +172,12 @@
     panel.querySelector('[aria-label="Pola premove"]').value=prefs.premovePolicy;
     input.enabled.checked=prefs.enabled;input.side.value=prefs.side;
     input.color.value=prefs.color; input.width.value=String(prefs.width);
+    body.hidden=prefs.panelCollapsed;
+    panel.dataset.collapsed=String(prefs.panelCollapsed);
+    const collapse=panel.querySelector('[data-action="collapse"]');
+    collapse.setAttribute('aria-expanded',String(!prefs.panelCollapsed));
+    collapse.setAttribute('aria-label',prefs.panelCollapsed?'Buka panel':'Tutup panel');
+    collapse.textContent=prefs.panelCollapsed?'⌄':'⌃';
     text('width',String(prefs.width));
     panel.querySelector('.coach-switch span').textContent=prefs.enabled ? 'Aktif' : 'Nonaktif';
     text('engine-name',`LEVEL ${prefs.elo} · GUEST`);
@@ -194,6 +212,7 @@
   panel.querySelector('[aria-label="Time management"]').addEventListener('change',e=>save({timeManagement:e.target.checked}));
   panel.querySelector('[aria-label="Adaptive auto move delay"]').addEventListener('change',e=>save({adaptiveDelay:e.target.checked}));
   panel.querySelector('[aria-label="Adaptive engine strength"]').addEventListener('change',e=>save({adaptiveStrength:e.target.checked}));
+  panel.querySelector('[data-action="collapse"]').addEventListener('click',()=>save({panelCollapsed:!prefs.panelCollapsed}));
   panel.querySelector('[aria-label="Endgame premove"]').addEventListener('change',e=>save({endgamePremove:e.target.checked}));
   panel.querySelector('[aria-label="Advanced premove"]').addEventListener('change',e=>save({advancedPremove:e.target.checked}));
   panel.querySelector('[data-action="stop"]').addEventListener('click',stopAutomation);
