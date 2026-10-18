@@ -13,6 +13,34 @@ from app_paths import ROOT
 PYTHON = ROOT / '.venv' / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
 
 
+def write_launcher_log(message):
+    try:
+        log = ROOT / 'runtime' / 'launcher.log'
+        log.parent.mkdir(parents=True, exist_ok=True)
+        with log.open('a', encoding='utf-8') as stream:
+            stream.write(time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()) + ' ' + message + '\n')
+    except OSError:
+        pass
+
+
+def browser_candidates():
+    names = ['chromium', 'chromium-browser', 'google-chrome', 'chrome', 'msedge', 'microsoft-edge']
+    found = [shutil.which(name) for name in names]
+    if os.name == 'nt':
+        local = os.environ.get('LOCALAPPDATA', '')
+        program = os.environ.get('PROGRAMFILES', '')
+        program_x86 = os.environ.get('PROGRAMFILES(X86)', '')
+        found += [
+            str(Path(local) / 'Google/Chrome/Application/chrome.exe'),
+            str(Path(program) / 'Google/Chrome/Application/chrome.exe'),
+            str(Path(program_x86) / 'Google/Chrome/Application/chrome.exe'),
+            str(Path(local) / 'Microsoft/Edge/Application/msedge.exe'),
+            str(Path(program) / 'Microsoft/Edge/Application/msedge.exe'),
+            str(Path(program_x86) / 'Microsoft/Edge/Application/msedge.exe'),
+        ]
+    return [path for path in found if path and Path(path).exists()]
+
+
 def main():
     if PYTHON.exists() and Path(sys.prefix).resolve() != PYTHON.parent.parent.resolve():
         return subprocess.call([str(PYTHON), str(Path(__file__)), *sys.argv[1:]])
@@ -32,13 +60,18 @@ def main():
         except OSError:
             return False
     if not ready():
-        executable = args.browser or next((shutil.which(name) for name in ['chromium', 'chromium-browser', 'google-chrome', 'chrome'] if shutil.which(name)), None)
+        executable = args.browser or next(iter(browser_candidates()), None)
         if not executable:
-            from playwright.sync_api import sync_playwright
-            with sync_playwright() as pw:
-                executable = pw.chromium.executable_path
+            try:
+                from playwright.sync_api import sync_playwright
+                with sync_playwright() as pw:
+                    executable = pw.chromium.executable_path
+            except Exception as exc:
+                write_launcher_log(f'Playwright browser lookup failed: {type(exc).__name__}: {exc}')
+                parser.error('Browser missing. Install Chrome/Edge or build with Chromium included.')
             if not Path(executable).exists():
-                parser.error('Browser missing. Run install.py --install-browser or supply --browser.')
+                write_launcher_log(f'No browser executable found: {executable}')
+                parser.error('Browser missing. Install Chrome/Edge or build with Chromium included.')
         command = [executable, '--remote-debugging-address=127.0.0.1', f'--remote-debugging-port={args.port}',
                    f'--user-data-dir={ROOT / "browser-profile"}', '--disable-dev-shm-usage', '--window-size=1440,1000']
         if args.headless:
@@ -46,12 +79,14 @@ def main():
         if args.no_sandbox:
             command.append('--no-sandbox')
         command.append('https://www.chess.com/play/computer')
+        write_launcher_log(f'Starting browser: {executable}')
         with (ROOT / 'browser.log').open('ab') as log:
             browser = subprocess.Popen(command, stdout=log, stderr=log)
         for _ in range(50):
             if ready():
                 break
             if browser.poll() is not None:
+                write_launcher_log(f'Browser exited with code {browser.returncode}')
                 parser.error('Browser exited. See browser.log.')
             time.sleep(.2)
         else:
@@ -64,7 +99,11 @@ def main():
         original = sys.argv
         try:
             sys.argv = [sys.argv[0], '--cdp', cdp, *extra]
-            return arrows_main()
+            try:
+                return arrows_main()
+            except Exception as exc:
+                write_launcher_log(f'Daemon failed: {type(exc).__name__}: {exc}')
+                raise
         finally:
             sys.argv = original
     return subprocess.call([sys.executable, str(ROOT / 'arrows.py'), '--cdp', cdp, *extra])

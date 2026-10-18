@@ -17,3 +17,7 @@ Playwright Chromium fallback during the build.
 The installer is per-user and writes its status/cache under the selected app
 folder. Maia is intentionally omitted from the base package; it can be added in
 a later Windows package after its CPU footprint is validated.
+
+If the launcher closes before a browser appears, inspect `runtime\\launcher.log`
+and `browser.log` inside the installed Move Coach folder. The launcher checks
+the standard Chrome and Edge install locations before trying Playwright.
