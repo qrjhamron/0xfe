@@ -1,4 +1,4 @@
-# Move Coach V11 — premove tunggal berulang, cabang 3/5/8
+# Move Coach V13 — premove tunggal berulang, cabang 3/5/8
 
 Tombol aktif saat ini: **1500, 1600, 1700, 1800, 1900, 2000**. Tombol
 2100–2300 dinonaktifkan sampai ada kalibrasi terpisah. Pilih satu tombol;
@@ -6,12 +6,13 @@ konfigurasi level dipilih otomatis di backend. Level awal 1500. Panel tidak
 menampilkan nama model, jumlah node, penggeser Elo atau input Elo bebas.
 Pilihan level dan penampilan disimpan serta disinkronkan antartab.
 
-## Paket Windows V12
+## Paket Windows V13
 
-Versi Windows dibangun sebagai installer per-user `MoveCoach-Setup-v12.exe`.
-Build memakai PyInstaller dan Inno Setup; Lc0 CPU Windows DNNL diambil dari
-rílis terpin, diverifikasi checksum, lalu dipasang bersama Stockfish dan empat
-weight. Chrome atau Edge yang sudah ada dipakai oleh launcher. Instruksi build
+Versi Windows dibangun sebagai installer per-user `MoveCoach-Setup-v13.exe`.
+Build memakai PyInstaller dan Inno Setup; Lc0 CPU Windows DNNL dan binary GPU
+CUDA opsional diambil dari rilis terpin, diverifikasi checksum, lalu dipasang
+bersama Stockfish dan empat weight. Chrome atau Edge yang sudah ada dipakai oleh
+launcher. Instruksi build
 ada di [windows/README.md](windows/README.md). Maia tidak termasuk paket dasar
 Windows agar ukuran dan waktu instalasi tetap terkendali.
 
@@ -41,6 +42,7 @@ setelah dipilih dari data kalibrasi.
 - **Aktif**: nyalakan atau matikan panah segera.
 - **Saya bermain**: deteksi otomatis, Putih, Hitam, atau kedua sisi untuk analisis.
 - **Warna / Tebal**: atur penampilan panah.
+- **Cek pembaruan**: periksa rilis Windows terbaru dari GitHub tanpa mencari link manual.
 - **Kekuatan adaptif per fase**: sesuaikan budget secara konservatif untuk opening, middlegame, endgame, dan posisi taktis. Matikan toggle untuk memakai budget kalibrasi tetap.
 
 Panel mengikuti papan, orientasi, reload dan game baru. Identitas pemain
@@ -107,11 +109,11 @@ baru tidak menjamin PGN identik. `python3 package.py` membuat ZIP melalui
 allowlist, tanpa cache, log, sesi browser atau kredensial.
 
 
-## Kontrol gerakan otomatis (V11)
+## Kontrol gerakan otomatis (V13)
 
 Engine memakai **incremental analysis**: worker mempertahankan identitas game dan hash UCI antar giliran serta menghitung cache hit incremental secara terpisah. Opening book kecil menangani beberapa posisi pembukaan umum dalam delapan ply pertama. Langkah utama memakai policy `play()` single-PV Lc0 pada node aktual preset; faktor dapat diatur melalui `--node-multiplier`. MultiPV tidak dipakai untuk memilih langkah utama. Planner premove masih memakai MultiPV terbatas untuk membaca beberapa cabang lawan, lalu memeriksa legalitas dan risiko sebelum mengantrekan satu langkah.
 
-**Kekuatan adaptif per fase** aktif dari panel V11. Budget preset menjadi baseline middlegame; posisi opening yang tenang memakai sekitar 75%, endgame queenless bermaterial rendah sekitar 115%, dan posisi sedang check sekitar 125%. Budget selalu dibulatkan dan dibatasi 1–256 node. Model, tombol Elo, dan limiter tetap sama; toggle dapat dimatikan untuk kembali ke budget kalibrasi tetap. Estimasi Elo yang ditampilkan adalah acuan preset tengah, sehingga mode adaptif sebaiknya dibaca sebagai rentang latihan, bukan rating resmi.
+**Kekuatan adaptif per fase** aktif dari panel V13. Budget preset menjadi baseline middlegame; posisi opening yang tenang memakai sekitar 75%, endgame queenless bermaterial rendah sekitar 115%, dan posisi sedang check sekitar 125%. Budget selalu dibulatkan dan dibatasi 1–256 node. Model, tombol Elo, dan limiter tetap sama; toggle dapat dimatikan untuk kembali ke budget kalibrasi tetap. Estimasi Elo yang ditampilkan adalah acuan preset tengah, sehingga mode adaptif sebaiknya dibaca sebagai rentang latihan, bukan rating resmi.
 
 **Auto move** menjalankan rekomendasi saat giliranmu. **Auto premove** mengantrekan langkah melalui API premove native pada papan saat giliran lawan. Antrean diverifikasi dari `game.premoves.getQueue()` dan FEN aktual harus tetap sama setelah antrean dipasang. Situs sendiri mengonsumsi antrean saat langkah lawan datang. Produk tidak memasang plugin tambahan atau memanggil API pengiriman langkah langsung untuk premove; papan pertandingan harus menyediakan plugin native-nya.
 
@@ -125,8 +127,10 @@ Antrean milik aplikasi dibatalkan ketika posisi tidak sesuai cabang yang diperik
 
 **Enable Premoves pada Chess.com harus ON.** Pengaturan situs yang OFF dapat membuat API premove hanya muncul saat pregame, lalu hilang ketika game berjalan. Panel mendeteksi kondisi tersebut dan menyediakan tombol pembuka pengaturan situs. Aplikasi tidak mengedit cache pengaturan akun, tidak menambahkan plugin palsu, dan tidak menganggap plugin pregame sebagai bukti premove selama game.
 
-**Delay (ms)** 0–10000 ms (awal 1200) dan **Gerak kursor (ms)** 60–600 ms (awal 400) berlaku pada Auto move. **Time management** membaca jam pemain dan memendekkan delay ketika waktu tersisa kritis; **Adaptive delay** menambah waktu pada posisi bercabang atau taktis. Keduanya bisa dimatikan untuk kembali ke delay tetap. Preferensi lama tetap dipertahankan. Antrean premove dipasang melalui API situs; konsumsi dan waktu jam mengikuti aturan situs. Jika pengaturan menggulir papan ke luar layar, Auto move menampilkan papan kembali sebelum input mouse. Browser baru dibuka pada ukuran 1440×1000. Promosi Auto move memilih bidak rekomendasi otomatis, termasuk underpromotion; pemilih dideteksi lewat class, data attribute, atau label bidak. Jika pemilih tidak dikenali dalam 1,5 detik, otomatisasi dihentikan.
+**Delay (ms)** 0–10000 ms (awal 1200) dan **Gerak kursor (ms)** 60–600 ms (awal 400) berlaku pada Auto move. **Time management** membaca jam pemain dan memendekkan delay ketika waktu tersisa kritis; **Adaptive delay** menambah waktu pada posisi bercabang atau taktis dan mengunci input Delay (ms) agar tidak bentrok. Matikan Adaptive delay untuk mengatur jeda manual. Preferensi lama tetap dipertahankan. Antrean premove dipasang melalui API situs; konsumsi dan waktu jam mengikuti aturan situs. Jika pengaturan menggulir papan ke luar layar, Auto move menampilkan papan kembali sebelum input mouse. Browser baru dibuka pada ukuran 1440×1000. Promosi Auto move memilih bidak rekomendasi otomatis, termasuk underpromotion; pemilih dideteksi lewat class, data attribute, atau label bidak. Jika pemilih tidak dikenali dalam 1,5 detik, otomatisasi dihentikan.
+
+Pada Windows, paket menyertakan build Lc0 GPU CUDA sebagai jalur opsional. Saat `nvidia-smi` mendeteksi GPU dan backend didukung binary, engine memilih GPU secara otomatis; jika tidak, engine memakai CPU DNNL/BLAS. `LC0_FORCE_CPU=1` memaksa CPU, sedangkan `LC0_BACKEND` dapat memilih backend tertentu untuk diagnosis.
 
 Panel menghitung **terpasang**, **terpakai**, **teramati**, **batal**, dan penolakan per game. Terpakai memerlukan event native dengan flag boolean `consumedPremove === true`, langkah yang cocok, dan FEN sesudah premove. Teramati berarti queue kosong dan FEN cocok tanpa event konsumsi yang terverifikasi; kedua jenis bukti tidak disamakan. Event ganda, fungsi yang kebetulan truthy, dan hasil dari game lain ditolak. Daemon menyimpan audit per game di `runtime/games/*.json`; gunakan `--audit-dir` untuk folder lain. Arsip distribusi tidak memuat audit atau sesi pengguna. Reload selalu mematikan otomatisasi.
 
-Pemeriksaan: `python check_adaptive_strength.py` untuk policy fase dan batas node, `python check_premove.py` untuk cabang, advanced ranking, endgame, dan pembatalan, `python check_premove_engine.py` untuk MultiPV engine nyata dan pemisahan cache, `python check_engine_upgrade.py` untuk opening book dan batas MultiPV per Elo, `python check_premove_ui.py` untuk enam siklus queue/konsumsi/isi ulang dalam kontrak native terisolasi, `python check_time_management.py` untuk jalur jam normal/kritis/taktis, dan `python check_auto_moves.py` untuk mouse, promosi pintar, dan papan di luar layar. `python check_browser.py` memerlukan daemon di CDP 9222 dengan `--status runtime/v6-status.json`. Diagnosis opsional `python check_native_board.py` memerlukan papan situs yang disiapkan lokal, bukan match aktif. Uji terisolasi tidak membuktikan pertandingan online; V11 belum diuji ulang melawan manusia. Game online V9 sebelumnya hanya membuktikan Auto move.
+Pemeriksaan: `python check_adaptive_strength.py` untuk policy fase dan batas node, `python check_premove.py` untuk cabang, advanced ranking, endgame, dan pembatalan, `python check_premove_engine.py` untuk MultiPV engine nyata dan pemisahan cache, `python check_engine_upgrade.py` untuk opening book dan batas MultiPV per Elo, `python check_premove_ui.py` untuk enam siklus queue/konsumsi/isi ulang dalam kontrak native terisolasi, `python check_time_management.py` untuk jalur jam normal/kritis/taktis, dan `python check_auto_moves.py` untuk mouse, promosi pintar, dan papan di luar layar. `python check_browser.py` memerlukan daemon di CDP 9222 dengan `--status runtime/v6-status.json`. Diagnosis opsional `python check_native_board.py` memerlukan papan situs yang disiapkan lokal, bukan match aktif. Uji terisolasi tidak membuktikan pertandingan online; V13 belum diuji ulang melawan manusia. Game online V9 sebelumnya hanya membuktikan Auto move.

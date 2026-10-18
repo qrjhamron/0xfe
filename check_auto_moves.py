@@ -22,6 +22,7 @@ with sync_playwright() as pw:
    s=read();auto.tick(page,s,{'move':move,'token':s['token']});page.wait_for_timeout(15)
  assert not read()['prefs']['autoMove'] and not read()['prefs']['autoPremove']
  assert not page.get_by_label('Langkah premove',exact=True).count()
+ page.get_by_label('Adaptive auto move delay',exact=True).uncheck()
  page.get_by_label('Delay auto move',exact=True).fill('0');page.get_by_label('Delay auto move',exact=True).dispatch_event('change')
  page.get_by_label('Durasi kursor',exact=True).fill('120');page.get_by_label('Durasi kursor',exact=True).dispatch_event('change')
  page.get_by_label('Auto premove',exact=True).check()

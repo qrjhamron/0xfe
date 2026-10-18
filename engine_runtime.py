@@ -1,9 +1,13 @@
 """Persistent UCI workers: bounded queues/cache, legal moves, history, recovery."""
 from collections import OrderedDict, deque
 from dataclasses import dataclass
+from functools import lru_cache
 import logging
 import os
 from pathlib import Path
+import re
+import shutil
+import subprocess
 import sys
 import threading
 import time
@@ -13,6 +17,85 @@ import chess.engine
 from maia_config import MODEL_NAME, MODEL_REVISION
 from lc0_config import WEIGHTS
 from app_paths import ROOT
+
+
+def _env_true(name):
+    return os.environ.get(name, '').strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+@lru_cache(maxsize=16)
+def _supported_lc0_backends(binary):
+    """Read the backend list from the bundled Lc0 binary once.
+
+    Windows releases are split into CPU and GPU builds.  Asking the binary for
+    its advertised UCI values keeps the selector safe when a user replaces the
+    bundled executable with a different build.
+    """
+    try:
+        result = subprocess.run([str(binary), '--help', '--show-hidden'],
+                                capture_output=True, text=True, timeout=4,
+                                check=False)
+        text = (result.stdout or '') + '\n' + (result.stderr or '')
+        matches = re.findall(r'VALUES:\s*([^\r\n]+)', text, re.IGNORECASE)
+        for raw in matches:
+            values = tuple(x.strip().lower().rstrip(']') for x in raw.split(',') if x.strip())
+            if any(name in values for name in ('eigen', 'blas', 'openblas', 'cudnn', 'cuda', 'opencl')):
+                return values
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return ()
+
+
+@lru_cache(maxsize=1)
+def _nvidia_gpu_present():
+    """Return whether an NVIDIA driver exposes a usable GPU probe."""
+    if _env_true('LC0_FORCE_CPU'):
+        return False
+    if _env_true('LC0_USE_GPU'):
+        return True
+    nvidia_smi = shutil.which('nvidia-smi')
+    if not nvidia_smi:
+        return False
+    try:
+        probe = subprocess.run([nvidia_smi, '-L'], capture_output=True, text=True,
+                               timeout=3, check=False)
+        return probe.returncode == 0 and bool((probe.stdout or '').strip())
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+_LC0_RUNTIME = {'binary': None, 'backend': None, 'gpu': False}
+
+
+def _select_lc0_runtime():
+    """Choose a GPU Lc0 build when available, with a verified CPU fallback."""
+    cpu_binary = ROOT / 'runtime' / ('lc0.exe' if os.name == 'nt' else 'lc0')
+    gpu_binary = ROOT / 'runtime' / 'lc0-gpu.exe'
+    explicit = os.environ.get('LC0_BACKEND', '').strip().lower()
+    gpu_backends = ('cudnn', 'cuda', 'opencl', 'onnx-dml', 'dml')
+    if gpu_binary.is_file() and (_nvidia_gpu_present() or explicit in gpu_backends):
+        supported = _supported_lc0_backends(str(gpu_binary))
+        backend = explicit if explicit and explicit != 'auto' else next(
+            (name for name in gpu_backends if name in supported), None)
+        if backend and (not supported or backend in supported):
+            _LC0_RUNTIME.update(binary=gpu_binary, backend=backend, gpu=True)
+            return gpu_binary, backend
+    supported = _supported_lc0_backends(str(cpu_binary))
+    backend = explicit if explicit and explicit != 'auto' else None
+    if backend not in supported:
+        preferred = ('blas', 'openblas', 'eigen') if os.name == 'nt' else ('eigen', 'openblas', 'blas')
+        backend = next((name for name in preferred if name in supported), backend or preferred[-1])
+    _LC0_RUNTIME.update(binary=cpu_binary, backend=backend, gpu=False)
+    return cpu_binary, backend
+
+
+def lc0_runtime_status():
+    """Small public status object used by the panel and diagnostics."""
+    if _LC0_RUNTIME['binary'] is None:
+        _select_lc0_runtime()
+    return {'backend': _LC0_RUNTIME['backend'] or 'cpu',
+            'gpu': bool(_LC0_RUNTIME['gpu']),
+            'label': ('GPU otomatis' if _LC0_RUNTIME['gpu'] else 'CPU otomatis')}
 
 
 @dataclass(frozen=True)
@@ -41,12 +124,9 @@ def engine_specs(stockfish):
         # Restrict the UI to the model's supported human rating range, not the broad UCI input range.
         'maia3': EngineSpec('maia3', 'Maia 3 · 5M', maia, 600, 2600,
                             (ROOT / 'runtime' / 'maia3-install.json').exists())}
-    binary = ROOT / 'runtime' / ('lc0.exe' if os.name == 'nt' else 'lc0')
+    binary, backend = _select_lc0_runtime()
     for key, (label, filename, _, size) in WEIGHTS.items():
         weight = ROOT / 'runtime' / 'lc0-weights' / (filename + '.pb.gz')
-        # The official Windows CPU-DNNL bundle exposes this backend through
-        # Lc0's generic `blas` UCI name; Linux keeps the tested Eigen path.
-        backend = os.environ.get('LC0_BACKEND') or ('blas' if os.name == 'nt' else 'eigen')
         command = [str(binary), '--weights=' + str(weight), '--backend=' + backend,
                    '--threads=1', '--minibatch-size=1', '--nncache=20000']
         specs[key] = EngineSpec(key, f'Lc0 · {label} · {size}', command, 600, 3190,

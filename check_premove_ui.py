@@ -40,6 +40,13 @@ def main():
         assert q.get_by_label('Buka panel',exact=True).count()==1
         q.get_by_label('Buka panel',exact=True).click()
         assert q.locator('.coach-body').is_visible()
+        delay=q.get_by_label('Delay auto move',exact=True)
+        assert delay.is_disabled()
+        q.get_by_label('Adaptive auto move delay',exact=True).uncheck()
+        assert not delay.is_disabled()
+        q.get_by_label('Adaptive auto move delay',exact=True).check()
+        assert delay.is_disabled()
+        print('PASS: adaptive delay locks the manual delay field and restores it when disabled')
         print('PASS: panel opens/closes from the header without removing the arrow coach state')
         q.get_by_label('Auto premove',exact=True).check()
         q.get_by_label('Cabang premove',exact=True).select_option('8')
@@ -70,7 +77,7 @@ def main():
         s=read();q.evaluate('delete document.querySelector("wc-chess-board").game.premoves')
         assert not read()['native']['supported']
         q.evaluate("localStorage.setItem('settingsHttpCache',JSON.stringify({u:{keys:{settings:{'gameplay.live.premoves':false}}}}))")
-        read();assert 'OFF' in q.locator('[data-field=native-status]').inner_text()
+        read();assert 'nonaktif' in q.locator('[data-field=native-status]').inner_text()
         assert q.locator('[data-action=site-premove]').is_visible()
         q.evaluate('document.querySelector("wc-chess-board").game.premoves=fixture.nativeApi')
         assert read()['native']['supported'] and audit()['counts']['used']==6

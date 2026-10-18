@@ -1,4 +1,4 @@
-# PyInstaller spec for the Windows V12 installer.
+# PyInstaller spec for the Windows V13 installer.
 from pathlib import Path
 from PyInstaller.utils.hooks import collect_submodules
 
@@ -15,6 +15,7 @@ def required(path):
 
 required(RUNTIME / 'stockfish.exe')
 required(RUNTIME / 'lc0.exe')
+required(RUNTIME / 'lc0-gpu.exe')
 required(RUNTIME / 'dnnl.dll')
 required(RUNTIME / 'mimalloc-override.dll')
 required(RUNTIME / 'mimalloc-redirect.dll')
@@ -35,6 +36,7 @@ datas += [(str(RUNTIME / 'lc0-weights' / name), 'runtime/lc0-weights')
 binaries = [
     (str(RUNTIME / 'stockfish.exe'), 'runtime'),
     (str(RUNTIME / 'lc0.exe'), 'runtime'),
+    (str(RUNTIME / 'lc0-gpu.exe'), 'runtime'),
     (str(RUNTIME / 'dnnl.dll'), 'runtime'),
     (str(RUNTIME / 'mimalloc-override.dll'), 'runtime'),
     (str(RUNTIME / 'mimalloc-redirect.dll'), 'runtime'),

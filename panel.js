@@ -1,5 +1,5 @@
-({defaults, presets, configId}) => {
-  const VERSION = 12;
+({defaults, presets, configId, runtime = {}}) => {
+  const VERSION = 13;
   const GLOBAL = '__chessArrowCoach';
   if (window[GLOBAL]?.version === VERSION && window[GLOBAL]?.configId === configId) return window[GLOBAL].read();
   window[GLOBAL]?.destroy();
@@ -91,6 +91,14 @@
     #human-engine-panel input[type=color] {width:26px;height:25px;padding:1px;border:1px solid #526b59;border-radius:5px;background:none;cursor:pointer}
     #human-engine-panel input[type=range] {min-width:40px;width:70px;accent-color:#4dd5a5;margin:0}
     #human-engine-panel .coach-footer {font-size:10px;color:#859c8d;margin:10px 0 0}
+    #human-engine-panel .coach-update {display:flex;align-items:center;gap:8px;margin-top:10px}
+    #human-engine-panel .coach-update button {border:1px solid #526b59;border-radius:6px;background:#17241c;color:#c8ded0;padding:5px 8px;font:600 10px system-ui;cursor:pointer}
+    #human-engine-panel .coach-update button:hover {background:#2b4435;border-color:#76a88a}
+    #human-engine-panel .coach-update button:disabled {opacity:.55;cursor:wait}
+    #human-engine-panel .coach-update span {color:#9cad9f;font-size:10px}
+    #human-engine-panel [data-field=runtime] {color:#8fdab7}
+    #human-engine-panel [data-field=delay-hint] {color:#8fa99a;font-size:10px;font-style:normal}
+    #human-engine-panel input:disabled {opacity:.5;cursor:not-allowed}
     #human-engine-panel [data-field=error] {color:#f0b482;font-size:11px;margin:8px 0 0;min-height:0}
     #human-engine-panel [data-field=error]:empty {display:none}
   `;
@@ -104,34 +112,35 @@
       <label class="coach-switch"><input type="checkbox" aria-label="Panah aktif"><span>Aktif</span></label></div></div>
     <div class="coach-status" role="status" aria-live="polite"><span class="coach-dot"></span><span data-field="status">Membaca posisi…</span></div>
     <div class="coach-recommendation"><strong data-field="move">—</strong><span data-field="detail">Menunggu posisi</span></div>
-    <div class="coach-field" id="coach-elo-label">Pilih Elo</div>
+    <div class="coach-field" id="coach-elo-label">Pilih level latihan</div>
     <div class="coach-levels" role="group" aria-labelledby="coach-elo-label"></div>
     <div class="coach-settings" style="grid-template-columns:1fr">
       <label class="coach-field">Saya bermain<select aria-label="Warna pemain"><option value="auto">Otomatis</option><option value="white">Putih</option><option value="black">Hitam</option><option value="both">Kedua sisi · analisis</option></select></label>
     </div>
     <div style="margin-top:12px" class="coach-settings">
-      <label class="coach-switch"><input type="checkbox" aria-label="Auto move">Auto move</label>
-      <label class="coach-field">Delay (ms)<input type="number" aria-label="Delay auto move" min="0" max="10000" step="50" value="1200"></label>
-    <label class="coach-switch"><input type="checkbox" aria-label="Time management">Time management</label>
+      <label class="coach-switch"><input type="checkbox" aria-label="Auto move">Gerak otomatis</label>
+      <label class="coach-field" data-delay-field>Delay (ms)<input type="number" aria-label="Delay auto move" min="0" max="10000" step="50" value="1200"><small data-field="delay-hint"></small></label>
+    <label class="coach-switch"><input type="checkbox" aria-label="Time management">Manajemen waktu</label>
     <label class="coach-switch"><input type="checkbox" aria-label="Adaptive auto move delay">Adaptive delay</label>
     <label class="coach-switch"><input type="checkbox" aria-label="Adaptive engine strength">Kekuatan adaptif per fase</label>
     <label class="coach-switch"><input type="checkbox" aria-label="Endgame premove">Endgame premove</label>
     <label class="coach-switch"><input type="checkbox" aria-label="Advanced premove">Advanced premove</label>
-      <label class="coach-switch"><input type="checkbox" aria-label="Auto premove">Auto premove</label>
+      <label class="coach-switch"><input type="checkbox" aria-label="Auto premove">Premove otomatis</label>
       <span class="coach-field">Antrean: 1 langkah · isi ulang tiap giliran</span>
       <label class="coach-field">Cabang lawan<select aria-label="Cabang premove"><option value="3">3 cabang · ringan</option><option value="5">5 cabang · seimbang</option><option value="8">8 cabang · luas</option></select></label>
       <label class="coach-field">Pola premove<select aria-label="Pola premove"><option value="strict">Ketat</option><option value="balanced">Seimbang</option><option value="active">Aktif</option></select></label>
       <label class="coach-field">Gerak kursor (ms)<input type="number" aria-label="Durasi kursor" min="60" max="600" step="20" value="400"></label>
-      <button type="button" data-action="stop">Stop · Esc</button>
-      <span data-field="automation" role="status">Otomatis mati</span>
+      <button type="button" data-action="stop">Hentikan · Esc</button>
+      <span data-field="automation" role="status">Otomatis nonaktif</span>
     </div>
     <div class="coach-footer" data-field="native-status"></div>
-    <button type="button" data-action="site-premove" hidden>Buka pengaturan premove Chess.com</button>
+    <button type="button" data-action="site-premove" hidden>Buka pengaturan premove di Chess.com</button>
     <p class="coach-footer" data-field="premove-stats">Terpasang 0 · terpakai 0 · batal 0</p>
     <details><summary>Cabang balasan</summary><div data-field="premove-plan">Aktifkan Auto premove untuk membaca cabang.</div></details>
     <div class="coach-appearance"><label>Warna<input type="color" aria-label="Warna panah"></label>
       <label style="margin-left:auto">Tebal<input type="range" aria-label="Ketebalan panah" min="6" max="26" step="1"><span data-field="width"></span></label></div>
-    <p data-field="error" role="alert"></p><p class="coach-footer" data-field="footer">Elo perkiraan · rekomendasi saat giliranmu</p>
+    <p data-field="error" role="alert"></p><p class="coach-footer" data-field="footer">Level latihan · rekomendasi saat giliranmu</p>
+    <div class="coach-update"><button type="button" data-action="update">Cek pembaruan</button><span data-field="update-status">Versi ${defaults.appVersion||'13'} · ${runtime.label||'CPU otomatis'}</span></div>
   `;
   const head = panel.firstElementChild;
   const body = document.createElement('div');
@@ -157,10 +166,38 @@
   }
   const field = name => panel.querySelector(`[data-field="${name}"]`);
   const text = (name,value) => { if (field(name).textContent !== value) field(name).textContent=value; };
+  const updateButton=panel.querySelector('[data-action="update"]');
+  let latestReleaseUrl='';
+  async function checkUpdate() {
+    if (latestReleaseUrl) { window.open(latestReleaseUrl,'_blank','noopener'); return; }
+    updateButton.disabled=true; text('update-status','Memeriksa versi terbaru…');
+    try {
+      const response=await fetch('https://api.github.com/repos/qrjhamron/0xfe/releases?per_page=20',
+        {headers:{Accept:'application/vnd.github+json'}});
+      if(!response.ok) throw new Error(`HTTP ${response.status}`);
+      const releases=await response.json();
+      const latest=releases.find(item=>!item.draft&&!item.prerelease&&item.tag_name?.startsWith('move-coach-v'));
+      if(!latest) throw new Error('release missing');
+      latestReleaseUrl=latest.html_url||defaults.releaseUrl;
+      const match=latest.tag_name.match(/move-coach-v(\d+)/i), version=match?.[1]||defaults.appVersion||'13';
+      if(Number(version)>Number(defaults.appVersion||'13')) {
+        updateButton.textContent='Buka pembaruan';
+        text('update-status',`Versi ${version} tersedia`);
+      } else {
+        text('update-status',`Sudah versi terbaru · ${runtime.label||'CPU otomatis'}`);
+      }
+    } catch (error) {
+      text('update-status','Tidak dapat memeriksa · buka halaman rilis');
+      latestReleaseUrl=defaults.releaseUrl||'https://github.com/qrjhamron/0xfe/releases';
+    } finally { updateButton.disabled=false; }
+  }
   function syncInputs() {
     for (const [elo,button] of buttons) button.setAttribute('aria-pressed',String(elo===prefs.elo));
     panel.querySelector('[aria-label="Auto move"]').checked=prefs.autoMove;
-    panel.querySelector('[aria-label="Delay auto move"]').value=String(prefs.delay);
+    const delayInput=panel.querySelector('[aria-label="Delay auto move"]');
+    delayInput.value=String(prefs.delay); delayInput.disabled=prefs.adaptiveDelay;
+    delayInput.title=prefs.adaptiveDelay?'Delay diatur otomatis oleh Adaptive delay':'Delay tetap untuk gerak otomatis';
+    text('delay-hint',prefs.adaptiveDelay?'Diatur otomatis':'');
     panel.querySelector('[aria-label="Time management"]').checked=prefs.timeManagement;
     panel.querySelector('[aria-label="Adaptive auto move delay"]').checked=prefs.adaptiveDelay;
     panel.querySelector('[aria-label="Adaptive engine strength"]').checked=prefs.adaptiveStrength;
@@ -206,7 +243,7 @@
   }
   panel.querySelector('[aria-label="Auto move"]').addEventListener('change',e=>{
     aliveAutomation=e.target.checked;save({autoMove:e.target.checked});
-    text('automation',prefs.autoMove?'Auto move aktif':'Otomatis mati');
+    text('automation',prefs.autoMove?'Gerak otomatis aktif':'Otomatis nonaktif');
   });
   panel.querySelector('[aria-label="Delay auto move"]').addEventListener('change',e=>save({delay:Number(e.target.value)}));
   panel.querySelector('[aria-label="Time management"]').addEventListener('change',e=>save({timeManagement:e.target.checked}));
@@ -218,11 +255,12 @@
   panel.querySelector('[data-action="stop"]').addEventListener('click',stopAutomation);
   panel.querySelector('[aria-label="Auto premove"]').addEventListener('change',e=>{
     alivePremove=e.target.checked;save({autoPremove:e.target.checked});
-    text('automation',prefs.autoPremove?'Auto premove aktif · memprediksi balasan lawan':'Auto premove mati');
+    text('automation',prefs.autoPremove?'Premove otomatis aktif · membaca balasan lawan':'Premove otomatis nonaktif');
   });
   panel.querySelector('[aria-label="Durasi kursor"]').addEventListener('change',e=>save({cursorMs:Number(e.target.value)}));
   panel.querySelector('[aria-label="Cabang premove"]').addEventListener('change',e=>save({premoveBreadth:Number(e.target.value)}));
   panel.querySelector('[aria-label="Pola premove"]').addEventListener('change',e=>save({premovePolicy:e.target.value}));
+  updateButton.addEventListener('click',checkUpdate);
   panel.querySelector('[data-action="site-premove"]').addEventListener('click',()=>{
     const gameSettings=[...document.querySelectorAll('button[aria-label="Settings"]')].find(e=>e.id!=='board-controls-settings');
     (gameSettings||document.querySelector('#board-controls-settings'))?.click();
@@ -399,12 +437,12 @@
     const siteSetting=sitePremoveSetting();
     const missing=prefs.autoPremove&&s.phase==='playing'&&!s.native.supported;
     const settingOff=prefs.autoPremove&&siteSetting===false;
-    text('native-status',settingOff?'Enable Premoves Chess.com OFF · aktifkan di pengaturan papan':missing?'API premove belum tersedia · respons cabang tetap disiapkan':s.native.supported?'API premove native siap':'');
+    text('native-status',settingOff?'Premove Chess.com nonaktif · aktifkan di pengaturan papan':missing?'API premove belum tersedia · respons cabang tetap disiapkan':s.native.supported?'Premove native siap':'');
     panel.querySelector('[data-action="site-premove"]').hidden=!missing&&!settingOff;
     text('premove-stats',`Terpasang ${auditCounts.queued} · terpakai ${auditCounts.used} · teramati ${auditCounts.observed} · batal ${auditCounts.cancelled}`);
     if(prefs.autoPremove&&s.phase==='playing'){
-      if(!s.native.supported)text('automation','Native premove tidak tersedia · menunggu giliran untuk Auto move');
-      else if(s.native.owned&&s.native.queue.length)text('automation','1 premove native · antrean situs');
+      if(!s.native.supported)text('automation','Premove native belum tersedia · menunggu giliran untuk gerak otomatis');
+      else if(s.native.owned&&s.native.queue.length)text('automation','1 premove native · menunggu lawan');
       else if(branchState?.base===s.fen||branchState?.base===s.fen.replace(/ ([a-h][36]) /,' - '))text('automation',branchState.message||'Menyiapkan premove');
     }
     if (lastEligibility!==s.token) { clearArrow();lastMove=null;backendState=null;lastEligibility=s.token; }

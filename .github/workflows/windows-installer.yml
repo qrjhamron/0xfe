@@ -22,5 +22,5 @@ jobs:
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: MoveCoach-Windows-v12
-          path: windows/Output/MoveCoach-Setup-v12.exe
+          name: MoveCoach-Windows-v13
+          path: windows/Output/MoveCoach-Setup-v13.exe

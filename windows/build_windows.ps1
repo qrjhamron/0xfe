@@ -29,7 +29,7 @@ if (-not (Test-Path 'runtime\stockfish.exe')) {
 if (-not (Test-Path 'runtime\lc0.exe') -or -not (Test-Path 'runtime\dnnl.dll')) {
     $Lc0Url = 'https://github.com/LeelaChessZero/lc0/releases/download/v0.32.1/lc0-v0.32.1-windows-cpu-dnnl.zip'
     $Lc0Sha256 = 'B9CFCFBD3DABFFBFD452F6E8E087C22273721BEF48EBA19640B6D92006C142F5'
-    $TempRoot = Join-Path ([IO.Path]::GetTempPath()) 'move-coach-lc0-v12'
+    $TempRoot = Join-Path ([IO.Path]::GetTempPath()) 'move-coach-lc0-v13'
     New-Item -ItemType Directory -Force $TempRoot | Out-Null
     $Archive = Join-Path $TempRoot 'lc0.zip'
     Invoke-WebRequest -Uri $Lc0Url -OutFile $Archive
@@ -44,6 +44,25 @@ if (-not (Test-Path 'runtime\lc0.exe') -or -not (Test-Path 'runtime\dnnl.dll')) 
         if (-not (Test-Path $Source)) { throw "Lc0 archive is missing $Name." }
         Copy-Item $Source (Join-Path 'runtime' $Name) -Force
     }
+}
+if (-not (Test-Path 'runtime\lc0-gpu.exe')) {
+    # Optional-driver CUDA build.  The app selects it only when nvidia-smi
+    # reports a GPU; machines without CUDA continue using the CPU-DNNL build.
+    $GpuUrl = 'https://github.com/LeelaChessZero/lc0/releases/download/v0.32.1/lc0-v0.32.1-windows-gpu-nvidia-cuda12-nodll.zip'
+    $GpuSha256 = '4E88D897E4C415ED1CEDE29FF971255D1932FD6642553FC12E32353AED562C4'
+    $GpuTemp = Join-Path ([IO.Path]::GetTempPath()) 'move-coach-lc0-gpu-v13'
+    New-Item -ItemType Directory -Force $GpuTemp | Out-Null
+    $GpuArchive = Join-Path $GpuTemp 'lc0-gpu.zip'
+    Invoke-WebRequest -Uri $GpuUrl -OutFile $GpuArchive
+    if ((Get-FileHash $GpuArchive -Algorithm SHA256).Hash -ne $GpuSha256) {
+        throw 'Lc0 GPU archive checksum mismatch.'
+    }
+    $GpuExtract = Join-Path $GpuTemp 'extract'
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $GpuExtract
+    Expand-Archive -Path $GpuArchive -DestinationPath $GpuExtract
+    $GpuSource = Join-Path $GpuExtract 'lc0.exe'
+    if (-not (Test-Path $GpuSource)) { throw 'Lc0 GPU archive is missing lc0.exe.' }
+    Copy-Item $GpuSource 'runtime\lc0-gpu.exe' -Force
 }
 & $VenvPython setup_lc0.py --lc0 runtime\lc0.exe
 if ($LASTEXITCODE -ne 0) { throw 'Lc0 and weight installation failed.' }
@@ -72,4 +91,4 @@ if (-not $Iscc) {
 New-Item -ItemType Directory -Force windows\Output | Out-Null
 & $Iscc /Qp windows\MoveCoach.iss
 if ($LASTEXITCODE -ne 0) { throw 'Inno Setup build failed.' }
-Write-Host "Created windows\Output\MoveCoach-Setup-v12.exe"
+Write-Host "Created windows\Output\MoveCoach-Setup-v13.exe"

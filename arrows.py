@@ -16,7 +16,7 @@ import math
 
 import chess
 from playwright.sync_api import sync_playwright, Error as BrowserError
-from engine_runtime import EnginePool, Request, engine_specs
+from engine_runtime import EnginePool, Request, engine_specs, lc0_runtime_status
 from auto_moves import AutoMoves
 from premove import Premove
 from session_audit import SessionAudit
@@ -109,8 +109,11 @@ def run(args, specs):
     availability=''.join('1' if specs[p.engine].available else '0' for p in PRESETS.values())
     assets_id=hashlib.sha256((panel+overlay).encode()).hexdigest()[:12]
     panel_id=f'{CONFIG_ID}:{availability}:{assets_id}'
-    panel_options = {'defaults': {'elo': args.elo, 'bothSides': args.both_sides},
+    panel_options = {'defaults': {'elo': args.elo, 'bothSides': args.both_sides,
+                                  'appVersion': '13', 'releaseUrl': 'https://github.com/qrjhamron/0xfe/releases'},
+                     'runtime': lc0_runtime_status(),
                      'presets': public_presets(specs), 'configId': panel_id}
+    logging.info('Lc0 runtime: %s', panel_options['runtime']['label'])
     pool = EnginePool(specs, think=args.think, threads=args.threads, hash_mb=args.hash_mb,
                       cache_size=args.cache_size)
     records = {}
@@ -150,7 +153,7 @@ def run(args, specs):
                         try:
                             response = page.evaluate(POLL)
                             snapshot = response.get('snapshot')
-                            if response.get('version') != 12 or response.get('configId') != panel_id:
+                            if response.get('version') != 13 or response.get('configId') != panel_id:
                                 snapshot = page.evaluate(panel, panel_options)
                             if snapshot:
                                 native_audit=page.evaluate('()=>window.__chessArrowCoach?.audit()')
@@ -316,7 +319,7 @@ def main():
     parser.add_argument('--think', type=float, default=.4)
     parser.add_argument('--threads', type=int, default=1)
     parser.add_argument('--hash-mb', type=int, default=64)
-    parser.add_argument('--cache-size', type=int, default=128)
+    parser.add_argument('--cache-size', type=int, default=256)
     parser.add_argument('--node-multiplier', type=float, default=1.0,
                         help='Multiply the main Lc0 node budget; main moves stay single-PV (default: 1).')
     parser.add_argument('--both-sides', action='store_true')
