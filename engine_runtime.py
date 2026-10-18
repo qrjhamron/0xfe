@@ -142,15 +142,25 @@ class EngineSpec:
 
 def engine_specs(stockfish):
     python = ROOT / '.venv' / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
-    maia = [str(python if python.exists() else sys.executable), '-m', 'maia3.uci',
+    # A frozen Windows build ships Maia as a sidecar executable. Source builds
+    # continue to use the project venv, which keeps local development light.
+    maia_worker = ROOT / ('maia-worker.exe' if os.name == 'nt' else 'maia-worker')
+    maia_runner = [str(maia_worker)] if getattr(sys, 'frozen', False) and maia_worker.exists() else [
+        str(python if python.exists() else sys.executable), '-m', 'maia3.uci']
+    maia = maia_runner + [
             '--model', MODEL_NAME, '--revision', MODEL_REVISION, '--device', 'cpu', '--no-use-amp',
             '--use-uci-history', '--local-files-only', '--cache-dir',
             str(ROOT / 'runtime' / 'maia3-cache'), '--temperature', '0', '--multipv', '1']
+    maia_ready = (ROOT / 'runtime' / 'maia3-install.json').exists()
+    if getattr(sys, 'frozen', False):
+        maia_ready = maia_ready and maia_worker.exists()
+    else:
+        maia_ready = maia_ready and python.exists()
     specs = {
         'stockfish': EngineSpec('stockfish', 'Stockfish', stockfish, 1320, 3190),
         # Restrict the UI to the model's supported human rating range, not the broad UCI input range.
         'maia3': EngineSpec('maia3', 'Maia 3 · 5M', maia, 600, 2600,
-                            (ROOT / 'runtime' / 'maia3-install.json').exists())}
+                            maia_ready)}
     binary, backend = _select_lc0_runtime()
     cpu_binary = ROOT / 'runtime' / ('lc0.exe' if os.name == 'nt' else 'lc0')
     cpu_supported = _supported_lc0_backends(str(cpu_binary))

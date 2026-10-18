@@ -32,7 +32,9 @@ def main():
         q=c.new_page();q.goto('https://www.chess.com/game/native-contract')
         q.evaluate('fixture.set({playingAs:2})');q.evaluate(NATIVE)
         presets={str(n):dict(available=True,estimate=n,interval=[n-100,n+100],games=60,target_within_interval=True) for n in range(1500,2301,100)}
-        opts={'defaults':{'elo':1500},'presets':presets,'configId':'v10-native-contract'}
+        opts={'defaults':{'elo':1500},'presets':presets,
+              'engines':{'maia3':{'label':'Maia 3 · gaya manusia','available':True}},
+              'configId':'v10-native-contract'}
         q.evaluate((ROOT/'panel.js').read_text(),opts)
         assert q.get_by_label('Tutup panel',exact=True).count()==1
         q.get_by_label('Tutup panel',exact=True).click()
@@ -46,16 +48,10 @@ def main():
         assert not delay.is_disabled()
         q.get_by_label('Adaptive auto move delay',exact=True).check()
         assert delay.is_disabled()
+        q.get_by_label('Mode mesin',exact=True).select_option('maia3')
+        assert q.evaluate('()=>__chessArrowCoach.poll().prefs.engine')=='maia3'
+        q.get_by_label('Mode mesin',exact=True).select_option('calibrated')
         print('PASS: adaptive delay locks the manual delay field and restores it when disabled')
-        assert q.locator('[data-field="badge"]').is_visible()
-        q.get_by_label('Gelar badge',exact=True).select_option('IM')
-        q.get_by_label('Warna badge',exact=True).select_option('teal')
-        assert q.locator('[data-field="badge-title"]').inner_text()=='IM'
-        assert q.locator('[data-field="badge"]').get_attribute('data-style')=='teal'
-        q.get_by_label('Badge lokal',exact=True).uncheck()
-        assert q.locator('[data-field="badge"]').is_hidden()
-        q.get_by_label('Badge lokal',exact=True).check()
-        print('PASS: local badge title, color, and visibility persist in the panel')
         print('PASS: panel opens/closes from the header without removing the arrow coach state')
         q.get_by_label('Auto premove',exact=True).check()
         q.get_by_label('Cabang premove',exact=True).select_option('8')

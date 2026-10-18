@@ -12,9 +12,10 @@ Versi Windows dibangun sebagai installer per-user `MoveCoach-Setup-v13.exe`.
 Build memakai PyInstaller dan Inno Setup; Lc0 CPU Windows DNNL dan binary GPU
 DirectML opsional diambil dari rilis terpin, diverifikasi checksum, lalu dipasang
 bersama Stockfish dan empat weight. Chrome atau Edge yang sudah ada dipakai oleh
-launcher. Instruksi build
-ada di [windows/README.md](windows/README.md). Maia tidak termasuk paket dasar
-Windows agar ukuran dan waktu instalasi tetap terkendali.
+launcher. Maia 3 5M sekarang ikut terpaket sebagai worker CPU offline, dengan
+checkpoint dicache saat build. Instruksi build ada di
+[windows/README.md](windows/README.md). Rencana migrasi ke shell native Windows
+ada di [WINDOWS-DESKTOP-UI-PLAN.md](WINDOWS-DESKTOP-UI-PLAN.md).
 
 ## Arti label
 
@@ -43,8 +44,8 @@ setelah dipilih dari data kalibrasi.
 - **Saya bermain**: deteksi otomatis, Putih, Hitam, atau kedua sisi untuk analisis.
 - **Warna / Tebal**: atur penampilan panah.
 - **Cek pembaruan**: periksa rilis Windows terbaru dari GitHub tanpa mencari link manual.
-- **Badge lokal**: pilih GM/IM/FM/NM/CM atau Coach dengan warna emblem; hanya dekorasi panel dan bertanda LOCAL.
 - **Kekuatan adaptif per fase**: sesuaikan budget secara konservatif untuk opening, middlegame, endgame, dan posisi taktis. Matikan toggle untuk memakai budget kalibrasi tetap.
+- **Mode mesin**: pilih Lc0 terkalibrasi atau Maia 3 gaya manusia jika worker Maia tersedia. Level tetap membatasi rentang latihan; Maia berjalan offline di CPU.
 
 Panel mengikuti papan, orientasi, reload dan game baru. Identitas pemain
 menggunakan API atau profil Guest, bukan orientasi papan. Jika identitas belum

@@ -15,8 +15,9 @@ Chrome/Edge already installed on the machine. Add `-InstallChromium` to cache a
 Playwright Chromium fallback during the build.
 
 The installer is per-user and writes its status/cache under the selected app
-folder. Maia is intentionally omitted from the base package; it can be added in
-a later Windows package after its CPU footprint is validated.
+folder. Maia 3 5M is included as an offline CPU sidecar (`maia-worker.exe`), so
+the Maia button is ready immediately after installation and does not need CUDA.
+The extra PyTorch runtime makes the installer larger than the Lc0-only build.
 
 On a machine without a compatible GPU, the CPU-DNNL path is selected
 automatically. Set `LC0_FORCE_CPU=1` to force that path, or use

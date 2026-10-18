@@ -70,6 +70,10 @@ if (-not (Test-Path 'runtime\lc0-gpu.exe') -or -not (Test-Path 'runtime\onnxrunt
 }
 & $VenvPython setup_lc0.py --lc0 runtime\lc0.exe
 if ($LASTEXITCODE -ne 0) { throw 'Lc0 and weight installation failed.' }
+# Maia is packaged as a CPU sidecar. It does not require CUDA and uses the
+# cached Maia-3 5M checkpoint, so the finished installer works offline.
+& $VenvPython setup_maia.py
+if ($LASTEXITCODE -ne 0) { throw 'Maia-3 installation failed.' }
 if ($InstallChromium) {
     & $VenvPython -m playwright install chromium
     if ($LASTEXITCODE -ne 0) { throw 'Chromium installation failed.' }

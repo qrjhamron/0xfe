@@ -44,6 +44,14 @@ def effective_budget(snapshot, preset, node_multiplier=1.0):
                                  bool(snapshot.get('prefs', {}).get('adaptiveStrength', True)))
     return replace(preset, nodes=budget.nodes), budget
 
+
+def selected_preset(snapshot, specs):
+    """Resolve the calibrated level, with an optional Maia human-play mode."""
+    preset = resolve_preset(snapshot['prefs']['elo'], specs)
+    if snapshot.get('prefs', {}).get('engine') == 'maia3' and specs['maia3'].available:
+        return replace(preset, engine='maia3')
+    return preset
+
 def choose_candidate(request, result):
     candidates=result.get('candidates') or []
     if len(candidates)<2:
@@ -112,6 +120,8 @@ def run(args, specs):
     panel_options = {'defaults': {'elo': args.elo, 'bothSides': args.both_sides,
                                   'appVersion': '13', 'releaseUrl': 'https://github.com/qrjhamron/0xfe/releases'},
                      'runtime': lc0_runtime_status(),
+                     'engines': {'maia3': {'label': 'Maia 3 · gaya manusia',
+                                           'available': specs['maia3'].available}},
                      'presets': public_presets(specs), 'configId': panel_id}
     logging.info('Lc0 runtime: %s', panel_options['runtime']['label'])
     pool = EnginePool(specs, think=args.think, threads=args.threads, hash_mb=args.hash_mb,
@@ -160,7 +170,7 @@ def run(args, specs):
                                 state['audit'].sync(snapshot,native_audit,page.url)
                             native=snapshot.get('native',{}) if snapshot else {}
                             planner=state['premove']
-                            preset_for_game = (resolve_preset(snapshot['prefs']['elo'], specs)
+                            preset_for_game = (selected_preset(snapshot, specs)
                                 if snapshot else None)
                             phase_budget = None
                             if preset_for_game and snapshot:
