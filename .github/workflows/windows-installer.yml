@@ -1,0 +1,26 @@
+name: Windows installer
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Inno Setup
+        shell: powershell
+        run: choco install innosetup --no-progress --yes
+      - name: Build installer
+        shell: powershell
+        run: .\windows\build_windows.ps1 -Clean
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: MoveCoach-Windows-v12
+          path: windows/Output/MoveCoach-Setup-v12.exe

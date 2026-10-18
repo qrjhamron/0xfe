@@ -1,0 +1,2 @@
+python-chess>=1.999,<2
+playwright>=1.45,<2

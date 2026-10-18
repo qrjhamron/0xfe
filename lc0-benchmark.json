@@ -1,0 +1,34 @@
+{
+  "badgyal8": {
+    "nodes_latency_ms": {
+      "16": 812,
+      "64": 1637,
+      "256": 1802
+    },
+    "idle_unloads": 1
+  },
+  "meangirl7": {
+    "nodes_latency_ms": {
+      "16": 25,
+      "64": 70,
+      "256": 227
+    },
+    "idle_unloads": 1
+  },
+  "goodgyal5": {
+    "nodes_latency_ms": {
+      "16": 41,
+      "64": 143,
+      "256": 366
+    },
+    "idle_unloads": 1
+  },
+  "evilgyal6": {
+    "nodes_latency_ms": {
+      "16": 46,
+      "64": 162,
+      "256": 360
+    },
+    "idle_unloads": 1
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "version": 7,
+  "profiles": {
+    "p1500": [
+      1500,
+      "meangirl7",
+      2
+    ],
+    "p1600": [
+      1600,
+      "meangirl7",
+      4
+    ],
+    "p1700": [
+      1700,
+      "evilgyal6",
+      8
+    ],
+    "p1800": [
+      1800,
+      "goodgyal5",
+      8
+    ],
+    "p1900": [
+      1900,
+      "goodgyal5",
+      12
+    ],
+    "p2000": [
+      2000,
+      "badgyal8",
+      4
+    ],
+    "p2100": [
+      2100,
+      "badgyal8",
+      6
+    ],
+    "p2200": [
+      2200,
+      "badgyal8",
+      10
+    ],
+    "p2300": [
+      2300,
+      "badgyal8",
+      24
+    ]
+  },
+  "references": [
+    1320,
+    1700,
+    2100,
+    2500
+  ],
+  "engine_options": {
+    "Threads": 1,
+    "MinibatchSize": 1,
+    "NNCacheSize": 20000,
+    "SmartPruningFactor": "0",
+    "RamLimitMb": 128,
+    "MaxPrefetch": 0
+  },
+  "stockfish_seconds": 0.05,
+  "games_per_profile": 48,
+  "opening_pairs": 24,
+  "max_plies": 300,
+  "mode": "single-pv",
+  "node_multiplier": 1,
+  "created_utc": "2026-10-18T05:17:30.025387+00:00",
+  "limitation": "Local Stockfish UCI_Elo reference; not Chess.com/FIDE Elo.",
+  "sha256": {
+    "runtime/lc0": "d880b19bffa28c0895ea4fc6c5c842d93a1d65e2b72bef6c574ee71712da100e",
+    "runtime/stockfish": "0f83d24cc46d2c66c60f16001af5444873bc112b7d028594513426894c12da19",
+    "runtime/lc0-weights/badgyal-8.pb.gz": "ef0a7e4c977fce5123e3e1bbee422bfbab031a7aaad6e02d6e46aeb8d06f2295",
+    "runtime/lc0-weights/evilgyal-6.pb.gz": "c2fbea2282a25d9f77bb3ba764b89a3b45451fcc0a747b5ec5c2b39a816e35a3",
+    "runtime/lc0-weights/goodgyal-5.pb.gz": "946bf0a91aec5e7c4481b7e0bc7db640a79e5d568eb840852db72e44de9145d3",
+    "runtime/lc0-weights/meangirl-7.pb.gz": "6dc4a71262dad58ad2729c7c5f425110c01590f2781b2c12b48028a28a107046"
+  }
+}

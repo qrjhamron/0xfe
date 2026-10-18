@@ -1,0 +1,16 @@
+{
+  "created_utc": "2026-10-17T15:29:40.968605+00:00",
+  "lc0": "v0.32.1, Eigen CPU, 1 thread, nodes=1, movetime ceiling=2s, minibatch=1, nncache=20000, SmartPruningFactor=0, RamLimitMb=128",
+  "stockfish": "Stockfish 19, 1 thread, Hash=16 MiB, UCI_LimitStrength=true",
+  "stockfish_move_seconds": 0.05,
+  "references": [
+    1320,
+    1600,
+    1900,
+    2200
+  ],
+  "max_plies": 300,
+  "opening_pairs_per_weight": 24,
+  "draws": "claimable threefold/50-move draws claimed; no evaluation adjudication; administrative ply-cap draws separately identified",
+  "limitation": "Local SF UCI_Elo-reference performance only, not calibrated Chess.com/FIDE Elo. Bootstrap covers game sampling, not reference/clock systematic bias."
+}

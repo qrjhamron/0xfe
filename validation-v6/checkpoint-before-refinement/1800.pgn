@@ -1,0 +1,68 @@
+[Event "V6 local level calibration"]
+[Site "Local CPU"]
+[Date "2026.10.17"]
+[Round "1"]
+[White "p1800"]
+[Black "Stockfish UCI_Elo 1700"]
+[Result "1-0"]
+[Opening "Two Knights quiet"]
+[Termination "checkmate"]
+[Profile "p1800"]
+[NodeBudget "8"]
+[ReferenceElo "1700"]
+[StockfishMoveTime "0.05"]
+[MaxPrefetch "0"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. d3 Be7 5. O-O d5 6. exd5 Nd4 7. Nxe5 O-O 8. c3 b5 9. cxd4 Bd7 10. Bb3 a5 11. a4 b4 12. Nd2 Bd6 13. Ndc4 Nxd5 14. Nxd6 Bxa4 15. Rxa4 Qxd6 16. Re1 Nb6 17. Ra2 a4 18. Bxf7+ Rxf7 19. Nxf7 Qd7 20. Ne5 Qd5 21. Ra1 Nd7 22. Rxa4 Rf8 23. Nxd7 Rd8 24. Nc5 h5 25. Rxb4 Rd6 26. Re8+ Kh7 27. Ne4 Rg6 28. g3 Rg4 29. Re7 Qa8 30. Nf6+ Kg6 31. Nxg4 Qg8 32. Ne5+ Kf6 33. Qxh5 Kxe7 34. Bg5+ Kd6 35. Qg6+ Qe6 36. Nc4+ Kd5 37. Ne3+ Kd6 38. Qxg7 Qa2 39. Bf4+ Ke6 40. Qg6+ Ke7 41. Nf5+ Kd7 42. Qh7+ Ke6 43. Ng7+ Kf7 44. Rb7 Qa5 45. Nf5+ Kf6 46. Qe7+ Kxf5 47. Qf7+ Kg4 48. Qg6+ Kf3 49. Qe4+ Kg4 50. f3+ Kh5 51. Qh7# 1-0
+
+[Event "V6 local level calibration"]
+[Site "Local CPU"]
+[Date "2026.10.17"]
+[Round "1"]
+[White "Stockfish UCI_Elo 1700"]
+[Black "p1800"]
+[Result "0-1"]
+[Opening "Two Knights quiet"]
+[Termination "checkmate"]
+[Profile "p1800"]
+[NodeBudget "8"]
+[ReferenceElo "1700"]
+[StockfishMoveTime "0.05"]
+[MaxPrefetch "0"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. d3 Be7 5. Ng5 O-O 6. O-O Na5 7. Nc3 Nxc4 8. dxc4 h6 9. Nf3 d6 10. a4 a5 11. b3 Bg4 12. Qe2 Nd7 13. Bb2 c6 14. Bc1 f5 15. Ba3 fxe4 16. Qxe4 Bxf3 17. Qg6 Rf6 18. Qxf6 Bxf6 19. Bxd6 e4 20. Nd1 Bxa1 21. c3 Be2 22. h3 Bxf1 23. Be7 Qxe7 24. b4 Be2 25. Nb2 Bxb2 26. b5 Qc5 27. g4 Bxc3 28. b6 Bd4 29. h4 Rf8 30. g5 Rxf2 31. Kh1 Bf3+ 32. Kg1 Rg2+ 33. Kf1 Rg1# 0-1
+
+[Event "V6 local level calibration"]
+[Site "Local CPU"]
+[Date "2026.10.17"]
+[Round "2"]
+[White "p1800"]
+[Black "Stockfish UCI_Elo 2100"]
+[Result "0-1"]
+[Opening "Sicilian Kan"]
+[Termination "checkmate"]
+[Profile "p1800"]
+[NodeBudget "8"]
+[ReferenceElo "2100"]
+[StockfishMoveTime "0.05"]
+[MaxPrefetch "0"]
+
+1. e4 c5 2. Nf3 e6 3. d4 cxd4 4. Nxd4 a6 5. Nc3 b6 6. Bd3 b5 7. O-O b4 8. Na4 Nf6 9. e5 Nd5 10. c4 bxc3 11. bxc3 Ra7 12. Rb1 Nc6 13. Nxc6 dxc6 14. c4 Nc3 15. Nxc3 Rd7 16. Qf3 Rxd3 17. Qxc6+ Bd7 18. Qxa6 Rxc3 19. Rd1 Qc8 20. Qa7 Bc5 21. Rb8 Bxa7 22. Rxc8+ Bxc8 23. h3 Rxc4 24. Ba3 Bc5 25. Bxc5 Rxc5 26. f4 Rc2 27. Ra1 h6 28. Kh2 g5 29. fxg5 Bb7 30. h4 Rxg2+ 31. Kh1 Rg3+ 32. Kh2 Rg2+ 33. Kh1 hxg5 34. h5 f6 35. Rb1 Rg4+ 36. Rxb7 Rxh5# 0-1
+
+[Event "V6 local level calibration"]
+[Site "Local CPU"]
+[Date "2026.10.17"]
+[Round "2"]
+[White "Stockfish UCI_Elo 2100"]
+[Black "p1800"]
+[Result "0-1"]
+[Opening "Sicilian Kan"]
+[Termination "checkmate"]
+[Profile "p1800"]
+[NodeBudget "8"]
+[ReferenceElo "2100"]
+[StockfishMoveTime "0.05"]
+[MaxPrefetch "0"]
+
+1. e4 c5 2. Nf3 e6 3. d4 cxd4 4. Nxd4 a6 5. c4 Nf6 6. Nc3 Bb4 7. Qc2 O-O 8. e5 Ng4 9. Bd3 Nxe5 10. Bxh7+ Kh8 11. Be4 f5 12. Nf3 Nxf3+ 13. Bxf3 Nc6 14. a3 Bxc3+ 15. Qxc3 Qf6 16. c5 e5 17. b4 e4 18. Qxf6 Rxf6 19. Bb2 exf3 20. Bxf6 fxg2 21. Rg1 gxf6 22. Rd1 Ne5 23. Ke2 f4 24. f3 a5 25. Rd6 axb4 26. Rxg2 bxa3 27. Rxf6 Kh7 28. Rf5 Ng6 29. h4 a2 30. Kf2 a1=Q 31. Rh5+ Kg7 32. Re5 Qd4+ 33. Kf1 Qd3+ 34. Kg1 Qd4+ 35. Kh1 Qa1+ 36. Rg1 Qxg1+ 37. Kxg1 Nxe5 38. Kf1 Ra3 39. Ke2 Nxf3 40. Kf2 Ne5 41. h5 Kh6 42. Kg2 Kxh5 43. Kh1 Kg4 44. c6 Ra1+ 45. Kg2 Ra2+ 46. Kf1 dxc6 47. Kg1 Kg3 48. Kh1 Ra1# 0-1
+

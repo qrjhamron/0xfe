@@ -1,0 +1,269 @@
+{
+  "version": 7,
+  "created_utc": "2026-10-18T05:44:51.819635+00:00",
+  "source": "calibration-v7-targeted-low-focus",
+  "calibration_games": 288,
+  "holdout_games": 72,
+  "total_games": 360,
+  "node_multiplier": 1,
+  "mode": "single-pv",
+  "active_targets": [
+    1500,
+    1600,
+    1700,
+    1800,
+    1900,
+    2000
+  ],
+  "inactive_targets": [
+    2100,
+    2200,
+    2300
+  ],
+  "kind": "Local SF UCI_Elo-reference estimates; not Chess.com/FIDE ratings",
+  "selection": "1500\u20132000 active; 1600 and 1700 use focused node candidates. 2100\u20132300 remain disabled.",
+  "presets": {
+    "1500": {
+      "profile": "p1500",
+      "engine": "meangirl7",
+      "nodes": 2,
+      "enabled": true,
+      "estimate": 1463,
+      "interval": [
+        1335,
+        1584
+      ],
+      "games": 60,
+      "calibration_estimate": 1477,
+      "validation": {
+        "games": 12,
+        "wins": 5,
+        "draws": 0,
+        "losses": 7,
+        "estimate": 1433,
+        "interval": [
+          1267,
+          1587
+        ]
+      },
+      "target_delta": -37,
+      "target_within_sampling_interval": true
+    },
+    "1600": {
+      "profile": "p1600f",
+      "engine": "meangirl7",
+      "nodes": 7,
+      "enabled": true,
+      "estimate": 1548,
+      "interval": [
+        1438,
+        1667
+      ],
+      "games": 60,
+      "calibration_estimate": 1582,
+      "validation": {
+        "games": 12,
+        "wins": 4,
+        "draws": 3,
+        "losses": 5,
+        "estimate": 1471,
+        "interval": [
+          1311,
+          1709
+        ]
+      },
+      "target_delta": -52,
+      "target_within_sampling_interval": true,
+      "calibration_source": "calibration-v7-focus"
+    },
+    "1700": {
+      "profile": "p1700f",
+      "engine": "evilgyal6",
+      "nodes": 4,
+      "enabled": true,
+      "estimate": 1699,
+      "interval": [
+        1574,
+        1818
+      ],
+      "games": 60,
+      "calibration_estimate": 1700,
+      "validation": {
+        "games": 12,
+        "wins": 2,
+        "draws": 3,
+        "losses": 7,
+        "estimate": 1696,
+        "interval": [
+          1547,
+          1820
+        ]
+      },
+      "target_delta": -1,
+      "target_within_sampling_interval": true,
+      "calibration_source": "calibration-v7-focus"
+    },
+    "1800": {
+      "profile": "p1800",
+      "engine": "goodgyal5",
+      "nodes": 8,
+      "enabled": true,
+      "estimate": 1842,
+      "interval": [
+        1735,
+        1949
+      ],
+      "games": 60,
+      "calibration_estimate": 1851,
+      "validation": {
+        "games": 12,
+        "wins": 4,
+        "draws": 2,
+        "losses": 6,
+        "estimate": 1820,
+        "interval": [
+          1602,
+          2020
+        ]
+      },
+      "target_delta": 42,
+      "target_within_sampling_interval": true
+    },
+    "1900": {
+      "profile": "p1900",
+      "engine": "goodgyal5",
+      "nodes": 12,
+      "enabled": true,
+      "estimate": 1889,
+      "interval": [
+        1747,
+        2032
+      ],
+      "games": 60,
+      "calibration_estimate": 1784,
+      "validation": {
+        "games": 12,
+        "wins": 7,
+        "draws": 4,
+        "losses": 1,
+        "estimate": 2149,
+        "interval": [
+          2061,
+          2253
+        ]
+      },
+      "target_delta": -11,
+      "target_within_sampling_interval": true
+    },
+    "2000": {
+      "profile": "p2000",
+      "engine": "badgyal8",
+      "nodes": 4,
+      "enabled": true,
+      "estimate": 1984,
+      "interval": [
+        1877,
+        2092
+      ],
+      "games": 60,
+      "calibration_estimate": 2003,
+      "validation": {
+        "games": 12,
+        "wins": 3,
+        "draws": 7,
+        "losses": 2,
+        "estimate": 1940,
+        "interval": [
+          1820,
+          2061
+        ]
+      },
+      "target_delta": -16,
+      "target_within_sampling_interval": true
+    },
+    "2100": {
+      "profile": "p2100s",
+      "engine": "badgyal8",
+      "nodes": 5,
+      "estimate": 2224,
+      "interval": [
+        2114,
+        2335
+      ],
+      "games": 60,
+      "target_delta": 124,
+      "target_within_sampling_interval": false,
+      "calibration_estimate": 2190,
+      "validation": {
+        "games": 12,
+        "wins": 4,
+        "draws": 4,
+        "losses": 4,
+        "estimate": 2300,
+        "interval": [
+          2096,
+          2549
+        ]
+      },
+      "enabled": false,
+      "legacy": true,
+      "status": "uncalibrated-after-node-change"
+    },
+    "2200": {
+      "profile": "p2100",
+      "engine": "badgyal8",
+      "nodes": 8,
+      "estimate": 2273,
+      "interval": [
+        2163,
+        2373
+      ],
+      "games": 60,
+      "target_delta": 73,
+      "target_within_sampling_interval": true,
+      "calibration_estimate": 2208,
+      "validation": {
+        "games": 12,
+        "wins": 5,
+        "draws": 5,
+        "losses": 2,
+        "estimate": 2420,
+        "interval": [
+          2260,
+          2598
+        ]
+      },
+      "enabled": false,
+      "legacy": true,
+      "status": "uncalibrated-after-node-change"
+    },
+    "2300": {
+      "profile": "p2300r",
+      "engine": "badgyal8",
+      "nodes": 10,
+      "estimate": 2273,
+      "interval": [
+        2139,
+        2412
+      ],
+      "games": 60,
+      "target_delta": -27,
+      "target_within_sampling_interval": true,
+      "calibration_estimate": 2225,
+      "validation": {
+        "games": 12,
+        "wins": 5,
+        "draws": 4,
+        "losses": 3,
+        "estimate": 2380,
+        "interval": [
+          2260,
+          2504
+        ]
+      },
+      "enabled": false,
+      "legacy": true,
+      "status": "uncalibrated-after-node-change"
+    }
+  }
+}

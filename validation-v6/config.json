@@ -1,0 +1,279 @@
+{
+  "created_utc": "2026-10-17T22:31:16.220388+00:00",
+  "selected": {
+    "1500": {
+      "profile": "p1500b",
+      "engine": "meangirl7",
+      "nodes": 2,
+      "estimate": 1422,
+      "interval": [
+        1262,
+        1565
+      ],
+      "games": 48,
+      "target_delta": -78,
+      "target_within_sampling_interval": true
+    },
+    "1600": {
+      "profile": "p1600",
+      "engine": "meangirl7",
+      "nodes": 4,
+      "estimate": 1650,
+      "interval": [
+        1513,
+        1784
+      ],
+      "games": 48,
+      "target_delta": 50,
+      "target_within_sampling_interval": true
+    },
+    "1700": {
+      "profile": "p1700",
+      "engine": "evilgyal6",
+      "nodes": 8,
+      "estimate": 1784,
+      "interval": [
+        1683,
+        1885
+      ],
+      "games": 48,
+      "target_delta": 84,
+      "target_within_sampling_interval": true
+    },
+    "1800": {
+      "profile": "p1800",
+      "engine": "goodgyal5",
+      "nodes": 8,
+      "estimate": 1868,
+      "interval": [
+        1733,
+        2003
+      ],
+      "games": 48,
+      "target_delta": 68,
+      "target_within_sampling_interval": true
+    },
+    "1900": {
+      "profile": "p2000",
+      "engine": "badgyal8",
+      "nodes": 4,
+      "estimate": 1935,
+      "interval": [
+        1834,
+        2037
+      ],
+      "games": 48,
+      "target_delta": 35,
+      "target_within_sampling_interval": true
+    },
+    "2000": {
+      "profile": "p1900",
+      "engine": "goodgyal5",
+      "nodes": 12,
+      "estimate": 1952,
+      "interval": [
+        1851,
+        2054
+      ],
+      "games": 48,
+      "target_delta": -48,
+      "target_within_sampling_interval": true
+    },
+    "2100": {
+      "profile": "p2100s",
+      "engine": "badgyal8",
+      "nodes": 5,
+      "estimate": 2190,
+      "interval": [
+        2071,
+        2315
+      ],
+      "games": 48,
+      "target_delta": 90,
+      "target_within_sampling_interval": true
+    },
+    "2200": {
+      "profile": "p2100",
+      "engine": "badgyal8",
+      "nodes": 8,
+      "estimate": 2208,
+      "interval": [
+        2071,
+        2333
+      ],
+      "games": 48,
+      "target_delta": 8,
+      "target_within_sampling_interval": true
+    },
+    "2300": {
+      "profile": "p2300r",
+      "engine": "badgyal8",
+      "nodes": 10,
+      "estimate": 2225,
+      "interval": [
+        2037,
+        2409
+      ],
+      "games": 48,
+      "target_delta": -75,
+      "target_within_sampling_interval": true
+    }
+  },
+  "openings": [
+    [
+      "Two Knights quiet",
+      "e4 e5 Nf3 Nc6 Bc4 Nf6 d3 Be7"
+    ],
+    [
+      "Sicilian Kan",
+      "e4 c5 Nf3 e6 d4 cxd4 Nxd4 a6"
+    ],
+    [
+      "Queens Indian",
+      "d4 Nf6 c4 e6 Nf3 b6 g3 Ba6"
+    ],
+    [
+      "Dutch Leningrad",
+      "d4 f5 g3 Nf6 Bg2 g6 Nf3 Bg7"
+    ],
+    [
+      "English QGD",
+      "c4 Nf6 Nc3 e6 Nf3 d5 d4 Be7"
+    ],
+    [
+      "Sicilian early e5",
+      "Nf3 c5 e4 Nc6 d4 cxd4 Nxd4 e5"
+    ]
+  ],
+  "games_per_preset": 12,
+  "engine_options": {
+    "Threads": 1,
+    "MinibatchSize": 1,
+    "NNCacheSize": 20000,
+    "SmartPruningFactor": "0",
+    "RamLimitMb": 128,
+    "MaxPrefetch": 0
+  },
+  "stockfish_seconds": 0.05,
+  "selection_policy": "No changes to selected node budgets based on the holdout results.",
+  "previous_selection": {
+    "1500": {
+      "profile": "p1500b",
+      "engine": "meangirl7",
+      "nodes": 2,
+      "estimate": 1422,
+      "interval": [
+        1262,
+        1565
+      ],
+      "games": 48,
+      "target_delta": -78,
+      "target_within_sampling_interval": true
+    },
+    "1600": {
+      "profile": "p1600",
+      "engine": "meangirl7",
+      "nodes": 4,
+      "estimate": 1650,
+      "interval": [
+        1513,
+        1784
+      ],
+      "games": 48,
+      "target_delta": 50,
+      "target_within_sampling_interval": true
+    },
+    "1700": {
+      "profile": "p1700",
+      "engine": "evilgyal6",
+      "nodes": 8,
+      "estimate": 1784,
+      "interval": [
+        1683,
+        1885
+      ],
+      "games": 48,
+      "target_delta": 84,
+      "target_within_sampling_interval": true
+    },
+    "1800": {
+      "profile": "p1800",
+      "engine": "goodgyal5",
+      "nodes": 8,
+      "estimate": 1868,
+      "interval": [
+        1733,
+        2003
+      ],
+      "games": 48,
+      "target_delta": 68,
+      "target_within_sampling_interval": true
+    },
+    "1900": {
+      "profile": "p2000",
+      "engine": "badgyal8",
+      "nodes": 4,
+      "estimate": 1935,
+      "interval": [
+        1834,
+        2037
+      ],
+      "games": 48,
+      "target_delta": 35,
+      "target_within_sampling_interval": true
+    },
+    "2000": {
+      "profile": "p1900",
+      "engine": "goodgyal5",
+      "nodes": 12,
+      "estimate": 1952,
+      "interval": [
+        1851,
+        2054
+      ],
+      "games": 48,
+      "target_delta": -48,
+      "target_within_sampling_interval": true
+    },
+    "2100": {
+      "profile": "p2100r",
+      "engine": "badgyal8",
+      "nodes": 6,
+      "estimate": 2279,
+      "interval": [
+        2139,
+        2428
+      ],
+      "games": 48,
+      "target_delta": 179,
+      "target_within_sampling_interval": false
+    },
+    "2200": {
+      "profile": "p2100",
+      "engine": "badgyal8",
+      "nodes": 8,
+      "estimate": 2208,
+      "interval": [
+        2071,
+        2333
+      ],
+      "games": 48,
+      "target_delta": 8,
+      "target_within_sampling_interval": true
+    },
+    "2300": {
+      "profile": "p2300r",
+      "engine": "badgyal8",
+      "nodes": 10,
+      "estimate": 2225,
+      "interval": [
+        2037,
+        2409
+      ],
+      "games": 48,
+      "target_delta": -75,
+      "target_within_sampling_interval": true
+    }
+  },
+  "revision_reason": "High-level profiles refined from calibration before their holdout games. Lower-level results retained unchanged."
+}

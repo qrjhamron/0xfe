@@ -1,0 +1,138 @@
+{
+  "version": 7,
+  "created_utc": "2026-10-18T05:17:02.386301+00:00",
+  "source": "calibration-v7",
+  "calibration_games": 432,
+  "node_multiplier": 4,
+  "mode": "single-pv",
+  "kind": "Local SF UCI_Elo-reference estimates; not Chess.com/FIDE ratings",
+  "selection": "The existing nine weight assignments were held fixed; only effective main-node budgets changed from the runtime 4x multiplier. Holdout results do not alter this mapping.",
+  "presets": {
+    "1500": {
+      "profile": "p1500",
+      "engine": "meangirl7",
+      "nodes": 2,
+      "effective_nodes": 8,
+      "estimate": 1901,
+      "interval": [
+        1750,
+        2054
+      ],
+      "games": 48,
+      "target_delta": 401,
+      "target_within_sampling_interval": false
+    },
+    "1600": {
+      "profile": "p1600",
+      "engine": "meangirl7",
+      "nodes": 4,
+      "effective_nodes": 16,
+      "estimate": 1750,
+      "interval": [
+        1616,
+        1885
+      ],
+      "games": 48,
+      "target_delta": 150,
+      "target_within_sampling_interval": false
+    },
+    "1700": {
+      "profile": "p1700",
+      "engine": "evilgyal6",
+      "nodes": 8,
+      "effective_nodes": 32,
+      "estimate": 1834,
+      "interval": [
+        1683,
+        1969
+      ],
+      "games": 48,
+      "target_delta": 134,
+      "target_within_sampling_interval": true
+    },
+    "1800": {
+      "profile": "p1800",
+      "engine": "goodgyal5",
+      "nodes": 8,
+      "effective_nodes": 32,
+      "estimate": 2020,
+      "interval": [
+        1834,
+        2190
+      ],
+      "games": 48,
+      "target_delta": 220,
+      "target_within_sampling_interval": false
+    },
+    "1900": {
+      "profile": "p1900",
+      "engine": "badgyal8",
+      "nodes": 4,
+      "effective_nodes": 16,
+      "estimate": 2468,
+      "interval": [
+        2352,
+        2602
+      ],
+      "games": 48,
+      "target_delta": 568,
+      "target_within_sampling_interval": false
+    },
+    "2000": {
+      "profile": "p2000",
+      "engine": "goodgyal5",
+      "nodes": 12,
+      "effective_nodes": 48,
+      "estimate": 2243,
+      "interval": [
+        2071,
+        2428
+      ],
+      "games": 48,
+      "target_delta": 243,
+      "target_within_sampling_interval": false
+    },
+    "2100": {
+      "profile": "p2100",
+      "engine": "badgyal8",
+      "nodes": 5,
+      "effective_nodes": 20,
+      "estimate": 2333,
+      "interval": [
+        2190,
+        2488
+      ],
+      "games": 48,
+      "target_delta": 233,
+      "target_within_sampling_interval": false
+    },
+    "2200": {
+      "profile": "p2200",
+      "engine": "badgyal8",
+      "nodes": 8,
+      "effective_nodes": 32,
+      "estimate": 2577,
+      "interval": [
+        2448,
+        2720
+      ],
+      "games": 48,
+      "target_delta": 377,
+      "target_within_sampling_interval": false
+    },
+    "2300": {
+      "profile": "p2300",
+      "engine": "badgyal8",
+      "nodes": 10,
+      "effective_nodes": 40,
+      "estimate": 2531,
+      "interval": [
+        2390,
+        2720
+      ],
+      "games": 48,
+      "target_delta": 231,
+      "target_within_sampling_interval": false
+    }
+  }
+}

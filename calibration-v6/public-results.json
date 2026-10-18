@@ -1,0 +1,452 @@
+{
+  "created_utc": "2026-10-17T22:48:11.883844+00:00",
+  "calibration_games": 624,
+  "holdout_games": 120,
+  "selected_preset_holdout_games": 108,
+  "retired_validation_games": 12,
+  "total_verified_games": 744,
+  "presets": {
+    "1500": {
+      "estimate": 1438,
+      "interval": [
+        1321,
+        1548
+      ],
+      "games": 60,
+      "calibration": {
+        "wins": 5,
+        "draws": 10,
+        "losses": 33,
+        "points": 10.0,
+        "local_reference_performance": 1422,
+        "bootstrap_95_interval": [
+          1262,
+          1565
+        ],
+        "search_stats": {
+          "moves": 2143,
+          "unknown_node_counts": 0,
+          "node_shortfalls": 0,
+          "p50_ms": 2.56,
+          "p95_ms": 3.94,
+          "max_ms": 11.24,
+          "min_reported_nodes": 2,
+          "max_reported_nodes": 3
+        }
+      },
+      "validation": {
+        "games": 12,
+        "wins": 4,
+        "draws": 3,
+        "losses": 5,
+        "estimate": 1471,
+        "interval": [
+          1353,
+          1587
+        ]
+      },
+      "combined": {
+        "wins": 9,
+        "draws": 13,
+        "losses": 38,
+        "points": 15.5,
+        "administrative_draws": 0
+      },
+      "target_delta": -62,
+      "target_within_sampling_interval": true
+    },
+    "1600": {
+      "estimate": 1560,
+      "interval": [
+        1438,
+        1679
+      ],
+      "games": 60,
+      "calibration": {
+        "wins": 12,
+        "draws": 9,
+        "losses": 27,
+        "points": 16.5,
+        "local_reference_performance": 1650,
+        "bootstrap_95_interval": [
+          1513,
+          1784
+        ],
+        "search_stats": {
+          "moves": 2044,
+          "unknown_node_counts": 0,
+          "node_shortfalls": 0,
+          "p50_ms": 3.36,
+          "p95_ms": 6.3,
+          "max_ms": 31.48,
+          "min_reported_nodes": 4,
+          "max_reported_nodes": 5
+        }
+      },
+      "validation": {
+        "games": 12,
+        "wins": 2,
+        "draws": 4,
+        "losses": 6,
+        "estimate": 1353,
+        "interval": [
+          1100,
+          1549
+        ]
+      },
+      "combined": {
+        "wins": 14,
+        "draws": 13,
+        "losses": 33,
+        "points": 20.5,
+        "administrative_draws": 0
+      },
+      "target_delta": -40,
+      "target_within_sampling_interval": true
+    },
+    "1700": {
+      "estimate": 1794,
+      "interval": [
+        1699,
+        1889
+      ],
+      "games": 60,
+      "calibration": {
+        "wins": 18,
+        "draws": 5,
+        "losses": 25,
+        "points": 20.5,
+        "local_reference_performance": 1784,
+        "bootstrap_95_interval": [
+          1683,
+          1885
+        ],
+        "search_stats": {
+          "moves": 2333,
+          "unknown_node_counts": 0,
+          "node_shortfalls": 0,
+          "p50_ms": 8.1,
+          "p95_ms": 13.64,
+          "max_ms": 39.98,
+          "min_reported_nodes": 8,
+          "max_reported_nodes": 9
+        }
+      },
+      "validation": {
+        "games": 12,
+        "wins": 4,
+        "draws": 2,
+        "losses": 6,
+        "estimate": 1820,
+        "interval": [
+          1602,
+          2020
+        ]
+      },
+      "combined": {
+        "wins": 22,
+        "draws": 7,
+        "losses": 31,
+        "points": 25.5,
+        "administrative_draws": 0
+      },
+      "target_delta": 94,
+      "target_within_sampling_interval": true
+    },
+    "1800": {
+      "estimate": 1889,
+      "interval": [
+        1771,
+        2008
+      ],
+      "games": 60,
+      "calibration": {
+        "wins": 17,
+        "draws": 12,
+        "losses": 19,
+        "points": 23.0,
+        "local_reference_performance": 1868,
+        "bootstrap_95_interval": [
+          1733,
+          2003
+        ],
+        "search_stats": {
+          "moves": 1975,
+          "unknown_node_counts": 0,
+          "node_shortfalls": 0,
+          "p50_ms": 8.19,
+          "p95_ms": 14.07,
+          "max_ms": 38.71,
+          "min_reported_nodes": 8,
+          "max_reported_nodes": 9
+        }
+      },
+      "validation": {
+        "games": 12,
+        "wins": 6,
+        "draws": 1,
+        "losses": 5,
+        "estimate": 1940,
+        "interval": [
+          1780,
+          2104
+        ]
+      },
+      "combined": {
+        "wins": 23,
+        "draws": 13,
+        "losses": 24,
+        "points": 29.5,
+        "administrative_draws": 0
+      },
+      "target_delta": 89,
+      "target_within_sampling_interval": true
+    },
+    "1900": {
+      "estimate": 1913,
+      "interval": [
+        1830,
+        1996
+      ],
+      "games": 60,
+      "calibration": {
+        "wins": 16,
+        "draws": 18,
+        "losses": 14,
+        "points": 25.0,
+        "local_reference_performance": 1935,
+        "bootstrap_95_interval": [
+          1834,
+          2037
+        ],
+        "search_stats": {
+          "moves": 2108,
+          "unknown_node_counts": 0,
+          "node_shortfalls": 0,
+          "p50_ms": 38.93,
+          "p95_ms": 48.31,
+          "max_ms": 109.7,
+          "min_reported_nodes": 4,
+          "max_reported_nodes": 5
+        }
+      },
+      "validation": {
+        "games": 12,
+        "wins": 3,
+        "draws": 5,
+        "losses": 4,
+        "estimate": 1860,
+        "interval": [
+          1780,
+          1940
+        ]
+      },
+      "combined": {
+        "wins": 19,
+        "draws": 23,
+        "losses": 18,
+        "points": 30.5,
+        "administrative_draws": 0
+      },
+      "target_delta": 13,
+      "target_within_sampling_interval": true
+    },
+    "2000": {
+      "estimate": 1901,
+      "interval": [
+        1818,
+        1984
+      ],
+      "games": 60,
+      "calibration": {
+        "wins": 19,
+        "draws": 13,
+        "losses": 16,
+        "points": 25.5,
+        "local_reference_performance": 1952,
+        "bootstrap_95_interval": [
+          1851,
+          2054
+        ],
+        "search_stats": {
+          "moves": 2416,
+          "unknown_node_counts": 0,
+          "node_shortfalls": 0,
+          "p50_ms": 11.22,
+          "p95_ms": 19.01,
+          "max_ms": 41.16,
+          "min_reported_nodes": 12,
+          "max_reported_nodes": 13
+        }
+      },
+      "validation": {
+        "games": 12,
+        "wins": 2,
+        "draws": 5,
+        "losses": 5,
+        "estimate": 1780,
+        "interval": [
+          1602,
+          1940
+        ]
+      },
+      "combined": {
+        "wins": 21,
+        "draws": 18,
+        "losses": 21,
+        "points": 30.0,
+        "administrative_draws": 0
+      },
+      "target_delta": -99,
+      "target_within_sampling_interval": false
+    },
+    "2100": {
+      "estimate": 2224,
+      "interval": [
+        2114,
+        2335
+      ],
+      "games": 60,
+      "calibration": {
+        "wins": 27,
+        "draws": 11,
+        "losses": 10,
+        "points": 32.5,
+        "local_reference_performance": 2190,
+        "bootstrap_95_interval": [
+          2071,
+          2315
+        ],
+        "search_stats": {
+          "moves": 2134,
+          "unknown_node_counts": 0,
+          "node_shortfalls": 0,
+          "p50_ms": 48.27,
+          "p95_ms": 59.33,
+          "max_ms": 114.91,
+          "min_reported_nodes": 5,
+          "max_reported_nodes": 6
+        }
+      },
+      "validation": {
+        "games": 12,
+        "wins": 4,
+        "draws": 4,
+        "losses": 4,
+        "estimate": 2300,
+        "interval": [
+          2096,
+          2549
+        ]
+      },
+      "combined": {
+        "wins": 31,
+        "draws": 15,
+        "losses": 14,
+        "points": 38.5,
+        "administrative_draws": 0
+      },
+      "target_delta": 124,
+      "target_within_sampling_interval": false
+    },
+    "2200": {
+      "estimate": 2273,
+      "interval": [
+        2163,
+        2373
+      ],
+      "games": 60,
+      "calibration": {
+        "wins": 25,
+        "draws": 16,
+        "losses": 7,
+        "points": 33.0,
+        "local_reference_performance": 2208,
+        "bootstrap_95_interval": [
+          2071,
+          2333
+        ],
+        "search_stats": {
+          "moves": 2099,
+          "unknown_node_counts": 0,
+          "node_shortfalls": 0,
+          "p50_ms": 74.0,
+          "p95_ms": 88.41,
+          "max_ms": 132.22,
+          "min_reported_nodes": 8,
+          "max_reported_nodes": 9
+        }
+      },
+      "validation": {
+        "games": 12,
+        "wins": 5,
+        "draws": 5,
+        "losses": 2,
+        "estimate": 2420,
+        "interval": [
+          2260,
+          2598
+        ]
+      },
+      "combined": {
+        "wins": 30,
+        "draws": 21,
+        "losses": 9,
+        "points": 40.5,
+        "administrative_draws": 0
+      },
+      "target_delta": 73,
+      "target_within_sampling_interval": true
+    },
+    "2300": {
+      "estimate": 2273,
+      "interval": [
+        2139,
+        2412
+      ],
+      "games": 60,
+      "calibration": {
+        "wins": 30,
+        "draws": 7,
+        "losses": 11,
+        "points": 33.5,
+        "local_reference_performance": 2225,
+        "bootstrap_95_interval": [
+          2037,
+          2409
+        ],
+        "search_stats": {
+          "moves": 1917,
+          "unknown_node_counts": 0,
+          "node_shortfalls": 0,
+          "p50_ms": 92.61,
+          "p95_ms": 115.11,
+          "max_ms": 246.97,
+          "min_reported_nodes": 10,
+          "max_reported_nodes": 11
+        }
+      },
+      "validation": {
+        "games": 12,
+        "wins": 5,
+        "draws": 4,
+        "losses": 3,
+        "estimate": 2380,
+        "interval": [
+          2260,
+          2504
+        ]
+      },
+      "combined": {
+        "wins": 35,
+        "draws": 11,
+        "losses": 14,
+        "points": 40.5,
+        "administrative_draws": 0
+      },
+      "target_delta": -27,
+      "target_within_sampling_interval": true
+    }
+  },
+  "limitation": "The fixed numeric buttons are nominal training targets. Estimates and intervals are local SF-reference measurements, not certified human ratings. Holdout did not alter profile selection."
+}

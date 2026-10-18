@@ -1,0 +1,219 @@
+{
+  "badgyal8": {
+    "games": 48,
+    "wins": 19,
+    "draws": 9,
+    "losses": 20,
+    "points": 23.5,
+    "score_percent": 48.96,
+    "local_reference_performance": 1739,
+    "bootstrap_95_interval": [
+      1608,
+      1871
+    ],
+    "bootstrap_method": "5000 resamples of color-swapped opening pairs, stratified by reference Elo",
+    "outside_reference_span": false,
+    "by_reference": {
+      "1320": {
+        "games": 12,
+        "wins": 11,
+        "draws": 0,
+        "losses": 1,
+        "score": 11
+      },
+      "1600": {
+        "games": 12,
+        "wins": 3,
+        "draws": 2,
+        "losses": 7,
+        "score": 4.0
+      },
+      "1900": {
+        "games": 12,
+        "wins": 4,
+        "draws": 4,
+        "losses": 4,
+        "score": 6.0
+      },
+      "2200": {
+        "games": 12,
+        "wins": 1,
+        "draws": 3,
+        "losses": 8,
+        "score": 2.5
+      }
+    },
+    "termination_counts": {
+      "checkmate": 39,
+      "threefold_repetition": 8,
+      "insufficient_material": 1
+    },
+    "administrative_draws": 0,
+    "cap_sensitivity_range": null,
+    "mean_total_plies": 93.9,
+    "total_game_seconds": 146.8
+  },
+  "meangirl7": {
+    "games": 48,
+    "wins": 10,
+    "draws": 10,
+    "losses": 28,
+    "points": 15.0,
+    "score_percent": 31.25,
+    "local_reference_performance": 1514,
+    "bootstrap_95_interval": [
+      1400,
+      1608
+    ],
+    "bootstrap_method": "5000 resamples of color-swapped opening pairs, stratified by reference Elo",
+    "outside_reference_span": false,
+    "by_reference": {
+      "1320": {
+        "games": 12,
+        "wins": 8,
+        "draws": 3,
+        "losses": 1,
+        "score": 9.5
+      },
+      "1600": {
+        "games": 12,
+        "wins": 2,
+        "draws": 5,
+        "losses": 5,
+        "score": 4.5
+      },
+      "1900": {
+        "games": 12,
+        "wins": 0,
+        "draws": 1,
+        "losses": 11,
+        "score": 0.5
+      },
+      "2200": {
+        "games": 12,
+        "wins": 0,
+        "draws": 1,
+        "losses": 11,
+        "score": 0.5
+      }
+    },
+    "termination_counts": {
+      "checkmate": 38,
+      "threefold_repetition": 8,
+      "insufficient_material": 1,
+      "stalemate": 1
+    },
+    "administrative_draws": 0,
+    "cap_sensitivity_range": null,
+    "mean_total_plies": 82.1,
+    "total_game_seconds": 99.6
+  },
+  "goodgyal5": {
+    "games": 48,
+    "wins": 10,
+    "draws": 13,
+    "losses": 25,
+    "points": 16.5,
+    "score_percent": 34.38,
+    "local_reference_performance": 1555,
+    "bootstrap_95_interval": [
+      1444,
+      1661
+    ],
+    "bootstrap_method": "5000 resamples of color-swapped opening pairs, stratified by reference Elo",
+    "outside_reference_span": false,
+    "by_reference": {
+      "1320": {
+        "games": 12,
+        "wins": 6,
+        "draws": 3,
+        "losses": 3,
+        "score": 7.5
+      },
+      "1600": {
+        "games": 12,
+        "wins": 2,
+        "draws": 3,
+        "losses": 7,
+        "score": 3.5
+      },
+      "1900": {
+        "games": 12,
+        "wins": 0,
+        "draws": 2,
+        "losses": 10,
+        "score": 1.0
+      },
+      "2200": {
+        "games": 12,
+        "wins": 2,
+        "draws": 5,
+        "losses": 5,
+        "score": 4.5
+      }
+    },
+    "termination_counts": {
+      "threefold_repetition": 12,
+      "checkmate": 35,
+      "stalemate": 1
+    },
+    "administrative_draws": 0,
+    "cap_sensitivity_range": null,
+    "mean_total_plies": 98.4,
+    "total_game_seconds": 123.5
+  },
+  "evilgyal6": {
+    "games": 48,
+    "wins": 11,
+    "draws": 15,
+    "losses": 22,
+    "points": 18.5,
+    "score_percent": 38.54,
+    "local_reference_performance": 1608,
+    "bootstrap_95_interval": [
+      1473,
+      1739
+    ],
+    "bootstrap_method": "5000 resamples of color-swapped opening pairs, stratified by reference Elo",
+    "outside_reference_span": false,
+    "by_reference": {
+      "1320": {
+        "games": 12,
+        "wins": 5,
+        "draws": 5,
+        "losses": 2,
+        "score": 7.5
+      },
+      "1600": {
+        "games": 12,
+        "wins": 3,
+        "draws": 6,
+        "losses": 3,
+        "score": 6.0
+      },
+      "1900": {
+        "games": 12,
+        "wins": 2,
+        "draws": 1,
+        "losses": 9,
+        "score": 2.5
+      },
+      "2200": {
+        "games": 12,
+        "wins": 1,
+        "draws": 3,
+        "losses": 8,
+        "score": 2.5
+      }
+    },
+    "termination_counts": {
+      "threefold_repetition": 14,
+      "checkmate": 33,
+      "insufficient_material": 1
+    },
+    "administrative_draws": 0,
+    "cap_sensitivity_range": null,
+    "mean_total_plies": 97.3,
+    "total_game_seconds": 120.3
+  }
+}

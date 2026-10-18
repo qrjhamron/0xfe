@@ -1,0 +1,7 @@
+{
+  "reason": "Other candidates complete; resume remaining final-candidate games on two CPU workers",
+  "completed_games_kept": 12,
+  "policy": "Keep all committed results; in-flight game not counted; no outcome-based selection",
+  "engine_options_unchanged": true,
+  "references_unchanged": true
+}

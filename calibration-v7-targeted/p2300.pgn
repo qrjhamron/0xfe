@@ -1,0 +1,18 @@
+[Event "V7 targeted main-node single-PV calibration"]
+[Site "Local CPU"]
+[Date "2026.10.18"]
+[Round "1"]
+[White "p2300"]
+[Black "Stockfish UCI_Elo 1320"]
+[Result "1-0"]
+[Opening "Ruy Lopez"]
+[Termination "checkmate"]
+[Profile "p2300"]
+[NodeBudget "24"]
+[ReferenceElo "1320"]
+[StockfishMoveTime "0.05"]
+[MaxPrefetch "0"]
+[Mode "single-pv"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O b5 6. Bb3 d6 7. c3 Be7 8. d4 O-O 9. Qe2 h6 10. h3 Re8 11. Rd1 Nd7 12. a4 Na5 13. Bc2 c6 14. dxe5 dxe5 15. Nxe5 Qc7 16. Nxd7 Bxd7 17. Nd2 Bg5 18. b4 Nc4 19. Nxc4 bxc4 20. Bxg5 hxg5 21. Qxc4 Be6 22. Qc5 Qf4 23. Rd6 Red8 24. e5 Bd5 25. Rd1 Rxd6 26. exd6 g6 27. d7 Kg7 28. Qe7 Qc7 29. c4 Bxc4 30. d8=Q Qxd8 31. Rxd8 Kh7 32. Rxa8 g4 33. Qh4+ Kg7 34. Qh8# 1-0
+

@@ -1,0 +1,797 @@
+{
+  "config": {
+    "version": 7,
+    "profiles": {
+      "p1500": [
+        1500,
+        "meangirl7",
+        8
+      ],
+      "p1600": [
+        1600,
+        "meangirl7",
+        16
+      ],
+      "p1700": [
+        1700,
+        "evilgyal6",
+        32
+      ],
+      "p1800": [
+        1800,
+        "goodgyal5",
+        32
+      ],
+      "p1900": [
+        1900,
+        "badgyal8",
+        16
+      ],
+      "p2000": [
+        2000,
+        "goodgyal5",
+        48
+      ],
+      "p2100": [
+        2100,
+        "badgyal8",
+        20
+      ],
+      "p2200": [
+        2200,
+        "badgyal8",
+        32
+      ],
+      "p2300": [
+        2300,
+        "badgyal8",
+        40
+      ]
+    },
+    "references": [
+      1320,
+      1700,
+      2100,
+      2500
+    ],
+    "engine_options": {
+      "Threads": 1,
+      "MinibatchSize": 1,
+      "NNCacheSize": 20000,
+      "SmartPruningFactor": "0",
+      "RamLimitMb": 128,
+      "MaxPrefetch": 0
+    },
+    "stockfish_seconds": 0.05,
+    "games_per_profile": 48,
+    "opening_pairs": 24,
+    "max_plies": 300,
+    "mode": "single-pv",
+    "node_multiplier": 4,
+    "created_utc": "2026-10-18T04:47:51.641405+00:00",
+    "limitation": "Local Stockfish UCI_Elo reference; not Chess.com/FIDE Elo.",
+    "sha256": {
+      "runtime/lc0": "d880b19bffa28c0895ea4fc6c5c842d93a1d65e2b72bef6c574ee71712da100e",
+      "runtime/stockfish": "0f83d24cc46d2c66c60f16001af5444873bc112b7d028594513426894c12da19",
+      "runtime/lc0-weights/badgyal-8.pb.gz": "ef0a7e4c977fce5123e3e1bbee422bfbab031a7aaad6e02d6e46aeb8d06f2295",
+      "runtime/lc0-weights/evilgyal-6.pb.gz": "c2fbea2282a25d9f77bb3ba764b89a3b45451fcc0a747b5ec5c2b39a816e35a3",
+      "runtime/lc0-weights/goodgyal-5.pb.gz": "946bf0a91aec5e7c4481b7e0bc7db640a79e5d568eb840852db72e44de9145d3",
+      "runtime/lc0-weights/meangirl-7.pb.gz": "6dc4a71262dad58ad2729c7c5f425110c01590f2781b2c12b48028a28a107046"
+    }
+  },
+  "results": {
+    "p1500": {
+      "games": 48,
+      "wins": 17,
+      "draws": 14,
+      "losses": 17,
+      "points": 24.0,
+      "score_percent": 50.0,
+      "local_reference_performance": 1901,
+      "bootstrap_95_interval": [
+        1750,
+        2054
+      ],
+      "bootstrap_method": "5000 resamples of color-swapped opening pairs, stratified by reference Elo",
+      "outside_reference_span": false,
+      "by_reference": {
+        "1320": {
+          "games": 12,
+          "wins": 9,
+          "draws": 3,
+          "losses": 0,
+          "score": 10.5
+        },
+        "1700": {
+          "games": 12,
+          "wins": 5,
+          "draws": 4,
+          "losses": 3,
+          "score": 7.0
+        },
+        "2100": {
+          "games": 12,
+          "wins": 3,
+          "draws": 2,
+          "losses": 7,
+          "score": 4.0
+        },
+        "2500": {
+          "games": 12,
+          "wins": 0,
+          "draws": 5,
+          "losses": 7,
+          "score": 2.5
+        }
+      },
+      "termination_counts": {
+        "checkmate": 34,
+        "threefold_repetition": 13,
+        "insufficient_material": 1
+      },
+      "administrative_draws": 0,
+      "cap_sensitivity_range": null,
+      "mean_total_plies": 98.7,
+      "total_game_seconds": 124.6,
+      "node_budget": 8,
+      "search_stats": {
+        "moves": 2177,
+        "unknown_node_counts": 0,
+        "node_shortfalls": 0,
+        "p50_ms": 5.52,
+        "p95_ms": 10.68,
+        "min_reported_nodes": 8,
+        "max_reported_nodes": 9
+      }
+    },
+    "p1600": {
+      "games": 48,
+      "wins": 16,
+      "draws": 7,
+      "losses": 25,
+      "points": 19.5,
+      "score_percent": 40.62,
+      "local_reference_performance": 1750,
+      "bootstrap_95_interval": [
+        1616,
+        1885
+      ],
+      "bootstrap_method": "5000 resamples of color-swapped opening pairs, stratified by reference Elo",
+      "outside_reference_span": false,
+      "by_reference": {
+        "1320": {
+          "games": 12,
+          "wins": 9,
+          "draws": 1,
+          "losses": 2,
+          "score": 9.5
+        },
+        "1700": {
+          "games": 12,
+          "wins": 7,
+          "draws": 2,
+          "losses": 3,
+          "score": 8.0
+        },
+        "2100": {
+          "games": 12,
+          "wins": 0,
+          "draws": 2,
+          "losses": 10,
+          "score": 1.0
+        },
+        "2500": {
+          "games": 12,
+          "wins": 0,
+          "draws": 2,
+          "losses": 10,
+          "score": 1.0
+        }
+      },
+      "termination_counts": {
+        "checkmate": 41,
+        "stalemate": 1,
+        "threefold_repetition": 6
+      },
+      "administrative_draws": 0,
+      "cap_sensitivity_range": null,
+      "mean_total_plies": 92.9,
+      "total_game_seconds": 124.1,
+      "node_budget": 16,
+      "search_stats": {
+        "moves": 2034,
+        "unknown_node_counts": 0,
+        "node_shortfalls": 0,
+        "p50_ms": 9.01,
+        "p95_ms": 16.39,
+        "min_reported_nodes": 16,
+        "max_reported_nodes": 17
+      }
+    },
+    "p1700": {
+      "games": 48,
+      "wins": 18,
+      "draws": 8,
+      "losses": 22,
+      "points": 22.0,
+      "score_percent": 45.83,
+      "local_reference_performance": 1834,
+      "bootstrap_95_interval": [
+        1683,
+        1969
+      ],
+      "bootstrap_method": "5000 resamples of color-swapped opening pairs, stratified by reference Elo",
+      "outside_reference_span": false,
+      "by_reference": {
+        "1320": {
+          "games": 12,
+          "wins": 11,
+          "draws": 0,
+          "losses": 1,
+          "score": 11
+        },
+        "1700": {
+          "games": 12,
+          "wins": 5,
+          "draws": 1,
+          "losses": 6,
+          "score": 5.5
+        },
+        "2100": {
+          "games": 12,
+          "wins": 2,
+          "draws": 1,
+          "losses": 9,
+          "score": 2.5
+        },
+        "2500": {
+          "games": 12,
+          "wins": 0,
+          "draws": 6,
+          "losses": 6,
+          "score": 3.0
+        }
+      },
+      "termination_counts": {
+        "checkmate": 40,
+        "insufficient_material": 1,
+        "threefold_repetition": 7
+      },
+      "administrative_draws": 0,
+      "cap_sensitivity_range": null,
+      "mean_total_plies": 89.7,
+      "total_game_seconds": 152.8,
+      "node_budget": 32,
+      "search_stats": {
+        "moves": 1959,
+        "unknown_node_counts": 0,
+        "node_shortfalls": 0,
+        "p50_ms": 27.21,
+        "p95_ms": 41.72,
+        "min_reported_nodes": 32,
+        "max_reported_nodes": 33
+      }
+    },
+    "p1800": {
+      "games": 48,
+      "wins": 23,
+      "draws": 9,
+      "losses": 16,
+      "points": 27.5,
+      "score_percent": 57.29,
+      "local_reference_performance": 2020,
+      "bootstrap_95_interval": [
+        1834,
+        2190
+      ],
+      "bootstrap_method": "5000 resamples of color-swapped opening pairs, stratified by reference Elo",
+      "outside_reference_span": false,
+      "by_reference": {
+        "1320": {
+          "games": 12,
+          "wins": 11,
+          "draws": 0,
+          "losses": 1,
+          "score": 11
+        },
+        "1700": {
+          "games": 12,
+          "wins": 9,
+          "draws": 0,
+          "losses": 3,
+          "score": 9
+        },
+        "2100": {
+          "games": 12,
+          "wins": 2,
+          "draws": 5,
+          "losses": 5,
+          "score": 4.5
+        },
+        "2500": {
+          "games": 12,
+          "wins": 1,
+          "draws": 4,
+          "losses": 7,
+          "score": 3.0
+        }
+      },
+      "termination_counts": {
+        "checkmate": 39,
+        "threefold_repetition": 9
+      },
+      "administrative_draws": 0,
+      "cap_sensitivity_range": null,
+      "mean_total_plies": 101.2,
+      "total_game_seconds": 176.0,
+      "node_budget": 32,
+      "search_stats": {
+        "moves": 2239,
+        "unknown_node_counts": 0,
+        "node_shortfalls": 0,
+        "p50_ms": 27.54,
+        "p95_ms": 43.34,
+        "min_reported_nodes": 32,
+        "max_reported_nodes": 33
+      }
+    },
+    "p1900": {
+      "games": 48,
+      "wins": 35,
+      "draws": 10,
+      "losses": 3,
+      "points": 40.0,
+      "score_percent": 83.33,
+      "local_reference_performance": 2468,
+      "bootstrap_95_interval": [
+        2352,
+        2602
+      ],
+      "bootstrap_method": "5000 resamples of color-swapped opening pairs, stratified by reference Elo",
+      "outside_reference_span": false,
+      "by_reference": {
+        "1320": {
+          "games": 12,
+          "wins": 12,
+          "draws": 0,
+          "losses": 0,
+          "score": 12
+        },
+        "1700": {
+          "games": 12,
+          "wins": 10,
+          "draws": 2,
+          "losses": 0,
+          "score": 11.0
+        },
+        "2100": {
+          "games": 12,
+          "wins": 9,
+          "draws": 2,
+          "losses": 1,
+          "score": 10.0
+        },
+        "2500": {
+          "games": 12,
+          "wins": 4,
+          "draws": 6,
+          "losses": 2,
+          "score": 7.0
+        }
+      },
+      "termination_counts": {
+        "checkmate": 38,
+        "threefold_repetition": 8,
+        "insufficient_material": 1,
+        "stalemate": 1
+      },
+      "administrative_draws": 0,
+      "cap_sensitivity_range": null,
+      "mean_total_plies": 88.1,
+      "total_game_seconds": 385.6,
+      "node_budget": 16,
+      "search_stats": {
+        "moves": 1930,
+        "unknown_node_counts": 0,
+        "node_shortfalls": 0,
+        "p50_ms": 157.4,
+        "p95_ms": 202.22,
+        "min_reported_nodes": 16,
+        "max_reported_nodes": 17
+      }
+    },
+    "p2000": {
+      "games": 48,
+      "wins": 29,
+      "draws": 10,
+      "losses": 9,
+      "points": 34.0,
+      "score_percent": 70.83,
+      "local_reference_performance": 2243,
+      "bootstrap_95_interval": [
+        2071,
+        2428
+      ],
+      "bootstrap_method": "5000 resamples of color-swapped opening pairs, stratified by reference Elo",
+      "outside_reference_span": false,
+      "by_reference": {
+        "1320": {
+          "games": 12,
+          "wins": 11,
+          "draws": 0,
+          "losses": 1,
+          "score": 11
+        },
+        "1700": {
+          "games": 12,
+          "wins": 8,
+          "draws": 1,
+          "losses": 3,
+          "score": 8.5
+        },
+        "2100": {
+          "games": 12,
+          "wins": 6,
+          "draws": 3,
+          "losses": 3,
+          "score": 7.5
+        },
+        "2500": {
+          "games": 12,
+          "wins": 4,
+          "draws": 6,
+          "losses": 2,
+          "score": 7.0
+        }
+      },
+      "termination_counts": {
+        "checkmate": 38,
+        "threefold_repetition": 10
+      },
+      "administrative_draws": 0,
+      "cap_sensitivity_range": null,
+      "mean_total_plies": 86.1,
+      "total_game_seconds": 170.3,
+      "node_budget": 48,
+      "search_stats": {
+        "moves": 1879,
+        "unknown_node_counts": 0,
+        "node_shortfalls": 0,
+        "p50_ms": 39.45,
+        "p95_ms": 61.26,
+        "min_reported_nodes": 48,
+        "max_reported_nodes": 49
+      }
+    },
+    "p2100": {
+      "games": 48,
+      "wins": 33,
+      "draws": 7,
+      "losses": 8,
+      "points": 36.5,
+      "score_percent": 76.04,
+      "local_reference_performance": 2333,
+      "bootstrap_95_interval": [
+        2190,
+        2488
+      ],
+      "bootstrap_method": "5000 resamples of color-swapped opening pairs, stratified by reference Elo",
+      "outside_reference_span": false,
+      "by_reference": {
+        "1320": {
+          "games": 12,
+          "wins": 11,
+          "draws": 1,
+          "losses": 0,
+          "score": 11.5
+        },
+        "1700": {
+          "games": 12,
+          "wins": 12,
+          "draws": 0,
+          "losses": 0,
+          "score": 12
+        },
+        "2100": {
+          "games": 12,
+          "wins": 7,
+          "draws": 0,
+          "losses": 5,
+          "score": 7
+        },
+        "2500": {
+          "games": 12,
+          "wins": 3,
+          "draws": 6,
+          "losses": 3,
+          "score": 6.0
+        }
+      },
+      "termination_counts": {
+        "checkmate": 41,
+        "threefold_repetition": 6,
+        "stalemate": 1
+      },
+      "administrative_draws": 0,
+      "cap_sensitivity_range": null,
+      "mean_total_plies": 93.6,
+      "total_game_seconds": 481.2,
+      "node_budget": 20,
+      "search_stats": {
+        "moves": 2059,
+        "unknown_node_counts": 0,
+        "node_shortfalls": 0,
+        "p50_ms": 193.55,
+        "p95_ms": 247.35,
+        "min_reported_nodes": 20,
+        "max_reported_nodes": 21
+      }
+    },
+    "p2200": {
+      "games": 48,
+      "wins": 40,
+      "draws": 5,
+      "losses": 3,
+      "points": 42.5,
+      "score_percent": 88.54,
+      "local_reference_performance": 2577,
+      "bootstrap_95_interval": [
+        2448,
+        2720
+      ],
+      "bootstrap_method": "5000 resamples of color-swapped opening pairs, stratified by reference Elo",
+      "outside_reference_span": true,
+      "by_reference": {
+        "1320": {
+          "games": 12,
+          "wins": 12,
+          "draws": 0,
+          "losses": 0,
+          "score": 12
+        },
+        "1700": {
+          "games": 12,
+          "wins": 10,
+          "draws": 0,
+          "losses": 2,
+          "score": 10
+        },
+        "2100": {
+          "games": 12,
+          "wins": 11,
+          "draws": 0,
+          "losses": 1,
+          "score": 11
+        },
+        "2500": {
+          "games": 12,
+          "wins": 7,
+          "draws": 5,
+          "losses": 0,
+          "score": 9.5
+        }
+      },
+      "termination_counts": {
+        "checkmate": 43,
+        "threefold_repetition": 3,
+        "insufficient_material": 2
+      },
+      "administrative_draws": 0,
+      "cap_sensitivity_range": null,
+      "mean_total_plies": 88.2,
+      "total_game_seconds": 655.5,
+      "node_budget": 32,
+      "search_stats": {
+        "moves": 1934,
+        "unknown_node_counts": 0,
+        "node_shortfalls": 0,
+        "p50_ms": 302.98,
+        "p95_ms": 381.09,
+        "min_reported_nodes": 32,
+        "max_reported_nodes": 33
+      }
+    },
+    "p2300": {
+      "games": 48,
+      "wins": 37,
+      "draws": 9,
+      "losses": 2,
+      "points": 41.5,
+      "score_percent": 86.46,
+      "local_reference_performance": 2531,
+      "bootstrap_95_interval": [
+        2390,
+        2720
+      ],
+      "bootstrap_method": "5000 resamples of color-swapped opening pairs, stratified by reference Elo",
+      "outside_reference_span": true,
+      "by_reference": {
+        "1320": {
+          "games": 12,
+          "wins": 12,
+          "draws": 0,
+          "losses": 0,
+          "score": 12
+        },
+        "1700": {
+          "games": 12,
+          "wins": 12,
+          "draws": 0,
+          "losses": 0,
+          "score": 12
+        },
+        "2100": {
+          "games": 12,
+          "wins": 7,
+          "draws": 4,
+          "losses": 1,
+          "score": 9.0
+        },
+        "2500": {
+          "games": 12,
+          "wins": 6,
+          "draws": 5,
+          "losses": 1,
+          "score": 8.5
+        }
+      },
+      "termination_counts": {
+        "checkmate": 39,
+        "insufficient_material": 2,
+        "threefold_repetition": 7
+      },
+      "administrative_draws": 0,
+      "cap_sensitivity_range": null,
+      "mean_total_plies": 88.5,
+      "total_game_seconds": 757.1,
+      "node_budget": 40,
+      "search_stats": {
+        "moves": 1939,
+        "unknown_node_counts": 0,
+        "node_shortfalls": 0,
+        "p50_ms": 363.03,
+        "p95_ms": 445.52,
+        "min_reported_nodes": 40,
+        "max_reported_nodes": 41
+      }
+    }
+  },
+  "selection": {
+    "version": 7,
+    "created_utc": "2026-10-18T05:17:02.386301+00:00",
+    "source": "calibration-v7",
+    "calibration_games": 432,
+    "node_multiplier": 4,
+    "mode": "single-pv",
+    "kind": "Local SF UCI_Elo-reference estimates; not Chess.com/FIDE ratings",
+    "selection": "The existing nine weight assignments were held fixed; only effective main-node budgets changed from the runtime 4x multiplier. Holdout results do not alter this mapping.",
+    "presets": {
+      "1500": {
+        "profile": "p1500",
+        "engine": "meangirl7",
+        "nodes": 2,
+        "effective_nodes": 8,
+        "estimate": 1901,
+        "interval": [
+          1750,
+          2054
+        ],
+        "games": 48,
+        "target_delta": 401,
+        "target_within_sampling_interval": false
+      },
+      "1600": {
+        "profile": "p1600",
+        "engine": "meangirl7",
+        "nodes": 4,
+        "effective_nodes": 16,
+        "estimate": 1750,
+        "interval": [
+          1616,
+          1885
+        ],
+        "games": 48,
+        "target_delta": 150,
+        "target_within_sampling_interval": false
+      },
+      "1700": {
+        "profile": "p1700",
+        "engine": "evilgyal6",
+        "nodes": 8,
+        "effective_nodes": 32,
+        "estimate": 1834,
+        "interval": [
+          1683,
+          1969
+        ],
+        "games": 48,
+        "target_delta": 134,
+        "target_within_sampling_interval": true
+      },
+      "1800": {
+        "profile": "p1800",
+        "engine": "goodgyal5",
+        "nodes": 8,
+        "effective_nodes": 32,
+        "estimate": 2020,
+        "interval": [
+          1834,
+          2190
+        ],
+        "games": 48,
+        "target_delta": 220,
+        "target_within_sampling_interval": false
+      },
+      "1900": {
+        "profile": "p1900",
+        "engine": "badgyal8",
+        "nodes": 4,
+        "effective_nodes": 16,
+        "estimate": 2468,
+        "interval": [
+          2352,
+          2602
+        ],
+        "games": 48,
+        "target_delta": 568,
+        "target_within_sampling_interval": false
+      },
+      "2000": {
+        "profile": "p2000",
+        "engine": "goodgyal5",
+        "nodes": 12,
+        "effective_nodes": 48,
+        "estimate": 2243,
+        "interval": [
+          2071,
+          2428
+        ],
+        "games": 48,
+        "target_delta": 243,
+        "target_within_sampling_interval": false
+      },
+      "2100": {
+        "profile": "p2100",
+        "engine": "badgyal8",
+        "nodes": 5,
+        "effective_nodes": 20,
+        "estimate": 2333,
+        "interval": [
+          2190,
+          2488
+        ],
+        "games": 48,
+        "target_delta": 233,
+        "target_within_sampling_interval": false
+      },
+      "2200": {
+        "profile": "p2200",
+        "engine": "badgyal8",
+        "nodes": 8,
+        "effective_nodes": 32,
+        "estimate": 2577,
+        "interval": [
+          2448,
+          2720
+        ],
+        "games": 48,
+        "target_delta": 377,
+        "target_within_sampling_interval": false
+      },
+      "2300": {
+        "profile": "p2300",
+        "engine": "badgyal8",
+        "nodes": 10,
+        "effective_nodes": 40,
+        "estimate": 2531,
+        "interval": [
+          2390,
+          2720
+        ],
+        "games": 48,
+        "target_delta": 231,
+        "target_within_sampling_interval": false
+      }
+    }
+  }
+}

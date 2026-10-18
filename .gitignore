@@ -1,0 +1,8 @@
+.venv/
+runtime/
+browser-profile/
+*.log
+status.json
+status.tmp
+engine-benchmark.json
+__pycache__/

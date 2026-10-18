@@ -1,0 +1,40 @@
+{
+  "preset": {
+    "profile": "p2100r",
+    "engine": "badgyal8",
+    "nodes": 6,
+    "estimate": 2273,
+    "interval": [
+      2175,
+      2386
+    ],
+    "games": 60,
+    "target_delta": 173,
+    "target_within_sampling_interval": false,
+    "calibration_estimate": 2279,
+    "validation": {
+      "games": 12,
+      "wins": 4,
+      "draws": 3,
+      "losses": 5,
+      "estimate": 2260,
+      "interval": [
+        2180,
+        2420
+      ]
+    }
+  },
+  "reason": {
+    "reason": "The original 6-node candidate has calibration estimate 2279 with interval 2139\u20132428, excluding target 2100.",
+    "basis": "Calibration only. No previous validation outcome is used to choose the 5-node budget.",
+    "new_profile": "p2100s",
+    "nodes": 5,
+    "calibration_games": 48,
+    "new_validation_games": 12,
+    "validation_policy": "Use a new six-opening set for the changed preset. Preserve the retired preset validation separately."
+  },
+  "sha256": {
+    "2100.jsonl": "fcdcaa5107eeda4d7d997b9c1fcad5a7e1bd33957549d77447032675058cbf04",
+    "2100.pgn": "206c12cb20839d1eae8d89912ffe17efd7f418d36d71eaa44aff77ac85dcd021"
+  }
+}

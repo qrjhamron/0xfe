@@ -1,0 +1,19 @@
+{
+  "reason": "Initial candidate at 12 nodes measured 2390 while 8 nodes measured 2208. Refine the gap instead of forcing labels.",
+  "basis": "Calibration results only; no validation outcome is used to select budgets.",
+  "extra_candidates": {
+    "p2100r": [
+      2100,
+      "badgyal8",
+      6
+    ],
+    "p2300r": [
+      2300,
+      "badgyal8",
+      10
+    ]
+  },
+  "additional_games": 96,
+  "label_mapping": "2100 uses refined 6-node candidate; 2200 uses measured 8-node candidate; 2300 uses refined 10-node candidate",
+  "stage": "first refinement; 2100 later superseded by final-refinement-plan.json"
+}

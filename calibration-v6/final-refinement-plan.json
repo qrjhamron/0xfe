@@ -1,0 +1,9 @@
+{
+  "reason": "The original 6-node candidate has calibration estimate 2279 with interval 2139\u20132428, excluding target 2100.",
+  "basis": "Calibration only. No previous validation outcome is used to choose the 5-node budget.",
+  "new_profile": "p2100s",
+  "nodes": 5,
+  "calibration_games": 48,
+  "new_validation_games": 12,
+  "validation_policy": "Use a new six-opening set for the changed preset. Preserve the retired preset validation separately."
+}

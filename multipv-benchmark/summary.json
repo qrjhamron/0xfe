@@ -1,0 +1,227 @@
+{
+  "1500": {
+    "single": {
+      "games": 48,
+      "wins": 6,
+      "draws": 11,
+      "losses": 31,
+      "points": 11.5,
+      "performance": 1477
+    },
+    "multipv": {
+      "games": 48,
+      "wins": 3,
+      "draws": 3,
+      "losses": 42,
+      "points": 4.5,
+      "performance": 1188
+    },
+    "delta": {
+      "performance_change": -289,
+      "paired_bootstrap_95_interval": [
+        -591,
+        -39
+      ]
+    }
+  },
+  "1600": {
+    "single": {
+      "games": 48,
+      "wins": 5,
+      "draws": 11,
+      "losses": 32,
+      "points": 10.5,
+      "performance": 1441
+    },
+    "multipv": {
+      "games": 48,
+      "wins": 2,
+      "draws": 3,
+      "losses": 43,
+      "points": 3.5,
+      "performance": 1130
+    },
+    "delta": {
+      "performance_change": -310,
+      "paired_bootstrap_95_interval": [
+        -593,
+        -132
+      ]
+    }
+  },
+  "1700": {
+    "single": {
+      "games": 48,
+      "wins": 17,
+      "draws": 12,
+      "losses": 19,
+      "points": 23.0,
+      "performance": 1868
+    },
+    "multipv": {
+      "games": 48,
+      "wins": 3,
+      "draws": 3,
+      "losses": 42,
+      "points": 4.5,
+      "performance": 1188
+    },
+    "delta": {
+      "performance_change": -679,
+      "paired_bootstrap_95_interval": [
+        -991,
+        -450
+      ]
+    }
+  },
+  "1800": {
+    "single": {
+      "games": 48,
+      "wins": 17,
+      "draws": 6,
+      "losses": 25,
+      "points": 20.0,
+      "performance": 1767
+    },
+    "multipv": {
+      "games": 48,
+      "wins": 1,
+      "draws": 4,
+      "losses": 43,
+      "points": 3.0,
+      "performance": 1097
+    },
+    "delta": {
+      "performance_change": -670,
+      "paired_bootstrap_95_interval": [
+        -1005,
+        -424
+      ]
+    }
+  },
+  "1900": {
+    "single": {
+      "games": 48,
+      "wins": 22,
+      "draws": 14,
+      "losses": 12,
+      "points": 29.0,
+      "performance": 2071
+    },
+    "multipv": {
+      "games": 48,
+      "wins": 0,
+      "draws": 6,
+      "losses": 42,
+      "points": 3.0,
+      "performance": 1097
+    },
+    "delta": {
+      "performance_change": -974,
+      "paired_bootstrap_95_interval": [
+        -1250,
+        -755
+      ]
+    }
+  },
+  "2000": {
+    "single": {
+      "games": 48,
+      "wins": 16,
+      "draws": 15,
+      "losses": 17,
+      "points": 23.5,
+      "performance": 1885
+    },
+    "multipv": {
+      "games": 48,
+      "wins": 1,
+      "draws": 4,
+      "losses": 43,
+      "points": 3.0,
+      "performance": 1097
+    },
+    "delta": {
+      "performance_change": -788,
+      "paired_bootstrap_95_interval": [
+        -1106,
+        -569
+      ]
+    }
+  },
+  "2100": {
+    "single": {
+      "games": 48,
+      "wins": 31,
+      "draws": 9,
+      "losses": 8,
+      "points": 35.5,
+      "performance": 2297
+    },
+    "multipv": {
+      "games": 48,
+      "wins": 2,
+      "draws": 1,
+      "losses": 45,
+      "points": 2.5,
+      "performance": 1058
+    },
+    "delta": {
+      "performance_change": -1239,
+      "paired_bootstrap_95_interval": [
+        -2261,
+        -995
+      ]
+    }
+  },
+  "2200": {
+    "single": {
+      "games": 48,
+      "wins": 25,
+      "draws": 13,
+      "losses": 10,
+      "points": 31.5,
+      "performance": 2156
+    },
+    "multipv": {
+      "games": 48,
+      "wins": 3,
+      "draws": 4,
+      "losses": 41,
+      "points": 5.0,
+      "performance": 1214
+    },
+    "delta": {
+      "performance_change": -941,
+      "paired_bootstrap_95_interval": [
+        -1212,
+        -724
+      ]
+    }
+  },
+  "2300": {
+    "single": {
+      "games": 48,
+      "wins": 32,
+      "draws": 9,
+      "losses": 7,
+      "points": 36.5,
+      "performance": 2333
+    },
+    "multipv": {
+      "games": 48,
+      "wins": 1,
+      "draws": 4,
+      "losses": 43,
+      "points": 3.0,
+      "performance": 1097
+    },
+    "delta": {
+      "performance_change": -1237,
+      "paired_bootstrap_95_interval": [
+        -1543,
+        -1026
+      ]
+    }
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "profiles": {
+    "p1500a": [
+      1500,
+      "meangirl7",
+      1
+    ],
+    "p1500b": [
+      1500,
+      "meangirl7",
+      2
+    ],
+    "p1600": [
+      1600,
+      "meangirl7",
+      4
+    ],
+    "p1700": [
+      1700,
+      "evilgyal6",
+      8
+    ],
+    "p1800": [
+      1800,
+      "goodgyal5",
+      8
+    ],
+    "p1900": [
+      1900,
+      "goodgyal5",
+      12
+    ],
+    "p2000": [
+      2000,
+      "badgyal8",
+      4
+    ],
+    "p2100": [
+      2100,
+      "badgyal8",
+      8
+    ],
+    "p2200": [
+      2200,
+      "badgyal8",
+      12
+    ],
+    "p2300": [
+      2300,
+      "badgyal8",
+      24
+    ],
+    "p2100r": [
+      2100,
+      "badgyal8",
+      6
+    ],
+    "p2300r": [
+      2300,
+      "badgyal8",
+      10
+    ],
+    "p2100s": [
+      2100,
+      "badgyal8",
+      5
+    ]
+  },
+  "references": [
+    1320,
+    1700,
+    2100,
+    2500
+  ],
+  "engine_options": {
+    "Threads": 1,
+    "MinibatchSize": 1,
+    "NNCacheSize": 20000,
+    "SmartPruningFactor": "0",
+    "RamLimitMb": 128,
+    "MaxPrefetch": 0
+  },
+  "lc0_seconds_ceiling": 2,
+  "stockfish_seconds": 0.05,
+  "stockfish_options": {
+    "Threads": 1,
+    "Hash": 16,
+    "UCI_LimitStrength": true
+  },
+  "games_per_profile": 48,
+  "opening_pairs": 24,
+  "max_plies": 300,
+  "workers": 2,
+  "draw_protocol": "Claimable threefold/50-move draws; no evaluation adjudication; capped games separately reported",
+  "created_utc": "2026-10-17T22:14:28.099844+00:00",
+  "limitation": "Local Stockfish UCI_Elo-reference only; bootstrap excludes systematic calibration and clock bias",
+  "sha256": {
+    "runtime/lc0": "d880b19bffa28c0895ea4fc6c5c842d93a1d65e2b72bef6c574ee71712da100e",
+    "runtime/stockfish": "0f83d24cc46d2c66c60f16001af5444873bc112b7d028594513426894c12da19",
+    "runtime/lc0-weights/badgyal-8.pb.gz": "ef0a7e4c977fce5123e3e1bbee422bfbab031a7aaad6e02d6e46aeb8d06f2295",
+    "runtime/lc0-weights/evilgyal-6.pb.gz": "c2fbea2282a25d9f77bb3ba764b89a3b45451fcc0a747b5ec5c2b39a816e35a3",
+    "runtime/lc0-weights/goodgyal-5.pb.gz": "946bf0a91aec5e7c4481b7e0bc7db640a79e5d568eb840852db72e44de9145d3",
+    "runtime/lc0-weights/meangirl-7.pb.gz": "6dc4a71262dad58ad2729c7c5f425110c01590f2781b2c12b48028a28a107046"
+  },
+  "initial_profiles": {
+    "p1500a": [
+      1500,
+      "meangirl7",
+      1
+    ],
+    "p1500b": [
+      1500,
+      "meangirl7",
+      2
+    ],
+    "p1600": [
+      1600,
+      "meangirl7",
+      4
+    ],
+    "p1700": [
+      1700,
+      "evilgyal6",
+      8
+    ],
+    "p1800": [
+      1800,
+      "goodgyal5",
+      8
+    ],
+    "p1900": [
+      1900,
+      "goodgyal5",
+      12
+    ],
+    "p2000": [
+      2000,
+      "badgyal8",
+      4
+    ],
+    "p2100": [
+      2100,
+      "badgyal8",
+      8
+    ],
+    "p2200": [
+      2200,
+      "badgyal8",
+      12
+    ],
+    "p2300": [
+      2300,
+      "badgyal8",
+      24
+    ]
+  },
+  "calibration_games": 624,
+  "refinement": {
+    "reason": "Initial candidate at 12 nodes measured 2390 while 8 nodes measured 2208. Refine the gap instead of forcing labels.",
+    "basis": "Calibration results only; no validation outcome is used to select budgets.",
+    "extra_candidates": {
+      "p2100r": [
+        2100,
+        "badgyal8",
+        6
+      ],
+      "p2300r": [
+        2300,
+        "badgyal8",
+        10
+      ]
+    },
+    "additional_games": 96,
+    "label_mapping": "2100 uses refined 6-node candidate; 2200 uses measured 8-node candidate; 2300 uses refined 10-node candidate",
+    "stage": "first refinement; 2100 later superseded by final_refinement"
+  },
+  "final_refinement": {
+    "reason": "The original 6-node candidate has calibration estimate 2279 with interval 2139\u20132428, excluding target 2100.",
+    "basis": "Calibration only. No previous validation outcome is used to choose the 5-node budget.",
+    "new_profile": "p2100s",
+    "nodes": 5,
+    "calibration_games": 48,
+    "new_validation_games": 12,
+    "validation_policy": "Use a new six-opening set for the changed preset. Preserve the retired preset validation separately."
+  }
+}

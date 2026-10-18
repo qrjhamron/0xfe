@@ -1,0 +1,239 @@
+{
+  "version": 6,
+  "created_utc": "2026-10-17T22:36:50.159096+00:00",
+  "source": "calibration-v6",
+  "calibration_games": 576,
+  "kind": "Local SF UCI_Elo-reference estimates; not Chess.com/FIDE ratings",
+  "selection": "Targets fixed at 1500\u20132300. For 1500 choose closest of two candidates, allowing 25 Elo tolerance for the extra-node candidate. Assign the two 1900/2000 candidates by their calibration estimate order. High-level refinement uses calibration results only. Each preset is locked before its own holdout games; no holdout results select its profile.",
+  "presets": {
+    "1500": {
+      "profile": "p1500b",
+      "engine": "meangirl7",
+      "nodes": 2,
+      "estimate": 1438,
+      "interval": [
+        1321,
+        1548
+      ],
+      "games": 60,
+      "target_delta": -62,
+      "target_within_sampling_interval": true,
+      "calibration_estimate": 1422,
+      "validation": {
+        "games": 12,
+        "wins": 4,
+        "draws": 3,
+        "losses": 5,
+        "estimate": 1471,
+        "interval": [
+          1353,
+          1587
+        ]
+      }
+    },
+    "1600": {
+      "profile": "p1600",
+      "engine": "meangirl7",
+      "nodes": 4,
+      "estimate": 1560,
+      "interval": [
+        1438,
+        1679
+      ],
+      "games": 60,
+      "target_delta": -40,
+      "target_within_sampling_interval": true,
+      "calibration_estimate": 1650,
+      "validation": {
+        "games": 12,
+        "wins": 2,
+        "draws": 4,
+        "losses": 6,
+        "estimate": 1353,
+        "interval": [
+          1100,
+          1549
+        ]
+      }
+    },
+    "1700": {
+      "profile": "p1700",
+      "engine": "evilgyal6",
+      "nodes": 8,
+      "estimate": 1794,
+      "interval": [
+        1699,
+        1889
+      ],
+      "games": 60,
+      "target_delta": 94,
+      "target_within_sampling_interval": true,
+      "calibration_estimate": 1784,
+      "validation": {
+        "games": 12,
+        "wins": 4,
+        "draws": 2,
+        "losses": 6,
+        "estimate": 1820,
+        "interval": [
+          1602,
+          2020
+        ]
+      }
+    },
+    "1800": {
+      "profile": "p1800",
+      "engine": "goodgyal5",
+      "nodes": 8,
+      "estimate": 1889,
+      "interval": [
+        1771,
+        2008
+      ],
+      "games": 60,
+      "target_delta": 89,
+      "target_within_sampling_interval": true,
+      "calibration_estimate": 1868,
+      "validation": {
+        "games": 12,
+        "wins": 6,
+        "draws": 1,
+        "losses": 5,
+        "estimate": 1940,
+        "interval": [
+          1780,
+          2104
+        ]
+      }
+    },
+    "1900": {
+      "profile": "p2000",
+      "engine": "badgyal8",
+      "nodes": 4,
+      "estimate": 1913,
+      "interval": [
+        1830,
+        1996
+      ],
+      "games": 60,
+      "target_delta": 13,
+      "target_within_sampling_interval": true,
+      "calibration_estimate": 1935,
+      "validation": {
+        "games": 12,
+        "wins": 3,
+        "draws": 5,
+        "losses": 4,
+        "estimate": 1860,
+        "interval": [
+          1780,
+          1940
+        ]
+      }
+    },
+    "2000": {
+      "profile": "p1900",
+      "engine": "goodgyal5",
+      "nodes": 12,
+      "estimate": 1901,
+      "interval": [
+        1818,
+        1984
+      ],
+      "games": 60,
+      "target_delta": -99,
+      "target_within_sampling_interval": false,
+      "calibration_estimate": 1952,
+      "validation": {
+        "games": 12,
+        "wins": 2,
+        "draws": 5,
+        "losses": 5,
+        "estimate": 1780,
+        "interval": [
+          1602,
+          1940
+        ]
+      }
+    },
+    "2100": {
+      "profile": "p2100r",
+      "engine": "badgyal8",
+      "nodes": 6,
+      "estimate": 2273,
+      "interval": [
+        2175,
+        2386
+      ],
+      "games": 60,
+      "target_delta": 173,
+      "target_within_sampling_interval": false,
+      "calibration_estimate": 2279,
+      "validation": {
+        "games": 12,
+        "wins": 4,
+        "draws": 3,
+        "losses": 5,
+        "estimate": 2260,
+        "interval": [
+          2180,
+          2420
+        ]
+      }
+    },
+    "2200": {
+      "profile": "p2100",
+      "engine": "badgyal8",
+      "nodes": 8,
+      "estimate": 2273,
+      "interval": [
+        2163,
+        2373
+      ],
+      "games": 60,
+      "target_delta": 73,
+      "target_within_sampling_interval": true,
+      "calibration_estimate": 2208,
+      "validation": {
+        "games": 12,
+        "wins": 5,
+        "draws": 5,
+        "losses": 2,
+        "estimate": 2420,
+        "interval": [
+          2260,
+          2598
+        ]
+      }
+    },
+    "2300": {
+      "profile": "p2300r",
+      "engine": "badgyal8",
+      "nodes": 10,
+      "estimate": 2273,
+      "interval": [
+        2139,
+        2412
+      ],
+      "games": 60,
+      "target_delta": -27,
+      "target_within_sampling_interval": true,
+      "calibration_estimate": 2225,
+      "validation": {
+        "games": 12,
+        "wins": 5,
+        "draws": 4,
+        "losses": 3,
+        "estimate": 2380,
+        "interval": [
+          2260,
+          2504
+        ]
+      }
+    }
+  },
+  "validated_utc": "2026-10-17T22:40:34.876996+00:00",
+  "total_games": 684,
+  "holdout_games": 108,
+  "note": "The fixed numeric buttons are nominal training targets. Estimates and intervals are local SF-reference measurements, not certified human ratings. Holdout did not alter profile selection."
+}
