@@ -49,7 +49,7 @@ if (-not (Test-Path 'runtime\lc0-gpu.exe')) {
     # Optional-driver CUDA build.  The app selects it only when nvidia-smi
     # reports a GPU; machines without CUDA continue using the CPU-DNNL build.
     $GpuUrl = 'https://github.com/LeelaChessZero/lc0/releases/download/v0.32.1/lc0-v0.32.1-windows-gpu-nvidia-cuda12-nodll.zip'
-    $GpuSha256 = '4E88D897E4C415ED1CEDE29FF971255D1932FD6642553FC12E32353AED562C4'
+    $GpuSha256 = '4E88D897E4C415ED1CEEDE29FF971255D1932FD6642553FC12E32353AED562C4'
     $GpuTemp = Join-Path ([IO.Path]::GetTempPath()) 'move-coach-lc0-gpu-v13'
     New-Item -ItemType Directory -Force $GpuTemp | Out-Null
     $GpuArchive = Join-Path $GpuTemp 'lc0-gpu.zip'
