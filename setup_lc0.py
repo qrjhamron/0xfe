@@ -103,7 +103,7 @@ def main():
     import chess
     import chess.engine
     for key, (_, name, _, _) in WEIGHTS.items():
-        backend = 'dnnl' if os.name == 'nt' else 'eigen'
+        backend = 'blas' if os.name == 'nt' else 'eigen'
         engine = chess.engine.SimpleEngine.popen_uci([str(binary), '--backend=' + backend,
                     '--weights=' + str(RUNTIME / 'lc0-weights' / (name + '.pb.gz')),
                     '--threads=1', '--minibatch-size=1', '--nncache=20000'], timeout=30)

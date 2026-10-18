@@ -44,7 +44,9 @@ def engine_specs(stockfish):
     binary = ROOT / 'runtime' / ('lc0.exe' if os.name == 'nt' else 'lc0')
     for key, (label, filename, _, size) in WEIGHTS.items():
         weight = ROOT / 'runtime' / 'lc0-weights' / (filename + '.pb.gz')
-        backend = os.environ.get('LC0_BACKEND') or ('dnnl' if os.name == 'nt' else 'eigen')
+        # The official Windows CPU-DNNL bundle exposes this backend through
+        # Lc0's generic `blas` UCI name; Linux keeps the tested Eigen path.
+        backend = os.environ.get('LC0_BACKEND') or ('blas' if os.name == 'nt' else 'eigen')
         command = [str(binary), '--weights=' + str(weight), '--backend=' + backend,
                    '--threads=1', '--minibatch-size=1', '--nncache=20000']
         specs[key] = EngineSpec(key, f'Lc0 · {label} · {size}', command, 600, 3190,
