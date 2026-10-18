@@ -10,7 +10,8 @@
   const choices=presets;
   const levels=Object.keys(choices).map(Number).sort((a,b)=>a-b);
   const maiaAvailable=engines?.maia3?.available===true;
-  const initial = {enabled:true, elo:defaults.elo||1500, engine:'calibrated', color:'#20c4a0', width:14,
+  const profileTitles=['NONE','GM','IM','FM','NM','CM','WGM','WIM'];
+  const initial = {enabled:true, elo:defaults.elo||1500, engine:'calibrated', profileVisible:true, profileTitle:'GM', color:'#20c4a0', width:14,
     autoMove:false, autoPremove:false, timeManagement:true, adaptiveDelay:true, adaptiveStrength:true, endgamePremove:true, advancedPremove:true, panelCollapsed:false, premoveLimit:1, delay:1200, cursorMs:400, side:defaults.bothSides ? 'both' : 'auto'};
   const clean = value => {
     const wanted=Number(value?.elo)||initial.elo;
@@ -19,7 +20,9 @@
     const elo=levels.includes(wanted)?wanted:
       (available.includes(initial.elo)?initial.elo:available[0]||initial.elo);
     return {
-      elo, engine:maiaAvailable && value?.engine==='maia3'?'maia3':'calibrated', autoMove:aliveAutomation && value?.autoMove===true, autoPremove:alivePremove && value?.autoPremove===true,
+      elo, engine:maiaAvailable && value?.engine==='maia3'?'maia3':'calibrated', profileVisible:value?.profileVisible!==false,
+      profileTitle:profileTitles.includes(String(value?.profileTitle||''))?String(value.profileTitle):'GM',
+      autoMove:aliveAutomation && value?.autoMove===true, autoPremove:alivePremove && value?.autoPremove===true,
       timeManagement:value?.timeManagement!==false, adaptiveDelay:value?.adaptiveDelay!==false,
       adaptiveStrength:value?.adaptiveStrength!==false,
       endgamePremove:value?.endgamePremove!==false, advancedPremove:value?.advancedPremove!==false, premoveLimit:1,
@@ -66,6 +69,20 @@
     #human-engine-panel .coach-collapse:focus-visible {outline:2px solid #a2efcf;outline-offset:2px}
     #human-engine-panel .coach-eyebrow {color:#75c4a5;font-size:10px;letter-spacing:1.4px;font-weight:750}
     #human-engine-panel h2 {margin:3px 0 0;color:#f2f5f3;font-size:18px;line-height:1.2;font-weight:750}
+    #human-engine-panel .coach-profile {margin:13px 0 14px;padding:10px 11px;border:1px solid #494943;border-radius:8px;background:linear-gradient(105deg,#2c2c2a,#343431);box-shadow:0 2px 8px #0004}
+    #human-engine-panel .coach-profile-top {display:flex;align-items:center;gap:9px;min-width:0}
+    #human-engine-panel .coach-profile-avatar {width:42px;height:42px;border-radius:6px;display:grid;place-items:center;flex:none;background:linear-gradient(145deg,#c58b42,#6c3e22);color:#fff;font:800 15px/1 system-ui;box-shadow:inset 0 0 0 1px #ffffff40}
+    #human-engine-panel .coach-profile-main {min-width:0;flex:1}
+    #human-engine-panel .coach-profile-name {display:flex;align-items:center;gap:5px;min-width:0;white-space:nowrap;overflow:hidden;color:#f0f0ec;font:750 14px/1.2 system-ui}
+    #human-engine-panel .coach-profile-name strong {overflow:hidden;text-overflow:ellipsis}
+    #human-engine-panel .coach-profile-title {padding:3px 5px;border-radius:4px;background:#c6443e;color:#fff;font:850 10px/1 system-ui;letter-spacing:.2px}
+    #human-engine-panel .coach-profile-title[data-title=NONE] {display:none}
+    #human-engine-panel .coach-profile-country {font-size:15px}
+    #human-engine-panel .coach-profile-gem {color:#6ed8ff;font-size:16px;text-shadow:0 0 5px #48c9ff88}
+    #human-engine-panel .coach-profile-subtitle {display:block;margin-top:4px;color:#aaa9a2;font-size:10px}
+    #human-engine-panel .coach-profile-rating {color:#fff;font:800 18px/1 system-ui}
+    #human-engine-panel .coach-profile-meta {display:flex;justify-content:space-between;gap:8px;margin-top:9px;padding-top:8px;border-top:1px solid #ffffff12;color:#aaa9a2;font-size:10px}
+    #human-engine-panel .coach-profile-meta strong {color:#e4e3df;font-size:11px}
     #human-engine-panel .coach-switch {display:flex;align-items:center;gap:6px;color:#cad8cf;font-size:12px;cursor:pointer}
     #human-engine-panel input[type=checkbox] {appearance:auto;width:17px;height:17px;accent-color:#20c4a0;margin:0}
     #human-engine-panel .coach-status {display:flex;align-items:center;gap:7px;margin:14px 0 10px;color:#b7c9bd;font-size:12px}
@@ -111,6 +128,10 @@
     <div class="coach-head"><div><div class="coach-eyebrow" data-field="engine-name">LEVEL LATIHAN · GUEST</div><div class="coach-title-row"><h2>Move Coach</h2></div></div>
       <div class="coach-head-actions"><button type="button" class="coach-collapse" data-action="collapse" aria-label="Tutup panel" aria-expanded="true">⌃</button>
       <label class="coach-switch"><input type="checkbox" aria-label="Panah aktif"><span>Aktif</span></label></div></div>
+    <div class="coach-profile" data-field="profile-card">
+      <div class="coach-profile-top"><div class="coach-profile-avatar">MC</div><div class="coach-profile-main"><div class="coach-profile-name"><span class="coach-profile-title" data-field="profile-title" data-title="GM">GM</span><strong>Move Coach</strong><span class="coach-profile-country">🌐</span><span class="coach-profile-gem">◆</span></div><small class="coach-profile-subtitle">Profil latihan lokal · visual saja</small></div><strong class="coach-profile-rating" data-field="profile-rating">1500</strong></div>
+      <div class="coach-profile-meta"><span>Rank <strong data-field="profile-rank">#900</strong></span><span>Won / Lost / Draw <strong>0 / 0 / 0</strong></span></div>
+    </div>
     <div class="coach-status" role="status" aria-live="polite"><span class="coach-dot"></span><span data-field="status">Membaca posisi…</span></div>
     <div class="coach-recommendation"><strong data-field="move">—</strong><span data-field="detail">Menunggu posisi</span></div>
     <div class="coach-field" id="coach-elo-label">Pilih level latihan</div>
@@ -118,6 +139,8 @@
     <div class="coach-settings" style="grid-template-columns:1fr">
       <label class="coach-field">Saya bermain<select aria-label="Warna pemain"><option value="auto">Otomatis</option><option value="white">Putih</option><option value="black">Hitam</option><option value="both">Kedua sisi · analisis</option></select></label>
       <label class="coach-field">Mode mesin<select aria-label="Mode mesin"><option value="calibrated">Lc0 · terkalibrasi</option><option value="maia3" ${maiaAvailable?'':'disabled'}>Maia 3 · gaya manusia${maiaAvailable?'':' (belum terpasang)'}</option></select></label>
+      <label class="coach-switch"><input type="checkbox" aria-label="Profil visual">Profil visual</label>
+      <label class="coach-field">Gelar visual<select aria-label="Gelar visual"><option>GM</option><option>IM</option><option>FM</option><option>NM</option><option>CM</option><option>WGM</option><option>WIM</option><option>NONE</option></select></label>
     </div>
     <div style="margin-top:12px" class="coach-settings">
       <label class="coach-switch"><input type="checkbox" aria-label="Auto move">Gerak otomatis</label>
@@ -197,6 +220,8 @@
   function syncInputs() {
     for (const [elo,button] of buttons) button.setAttribute('aria-pressed',String(elo===prefs.elo));
     panel.querySelector('[aria-label="Mode mesin"]').value=prefs.engine;
+    panel.querySelector('[aria-label="Profil visual"]').checked=prefs.profileVisible;
+    panel.querySelector('[aria-label="Gelar visual"]').value=prefs.profileTitle;
     panel.querySelector('[aria-label="Auto move"]').checked=prefs.autoMove;
     const delayInput=panel.querySelector('[aria-label="Delay auto move"]');
     delayInput.value=String(prefs.delay); delayInput.disabled=prefs.adaptiveDelay;
@@ -220,6 +245,14 @@
     collapse.setAttribute('aria-label',prefs.panelCollapsed?'Buka panel':'Tutup panel');
     collapse.textContent=prefs.panelCollapsed?'⌄':'⌃';
     text('width',String(prefs.width));
+    const profile=field('profile-card');
+    profile.hidden=!prefs.profileVisible;
+    profile.style.display=prefs.profileVisible?'block':'none';
+    const profileTitle=field('profile-title');
+    profileTitle.dataset.title=prefs.profileTitle;
+    profileTitle.textContent=prefs.profileTitle;
+    text('profile-rating',String(prefs.elo));
+    text('profile-rank',`#${Math.max(1,2400-prefs.elo)}`);
     panel.querySelector('.coach-switch span').textContent=prefs.enabled ? 'Aktif' : 'Nonaktif';
     text('engine-name',`LEVEL ${prefs.elo} · ${prefs.engine==='maia3'?'MAIA 3':'GUEST'}`);
     text('runtime-status',`${runtime.label||'CPU otomatis'} · ${runtime.reason||'Status engine lokal'}`);
@@ -231,7 +264,7 @@
     if(change.enabled===false||('side' in change&&change.side!==prefs.side))queuedMove=null;
     if(Object.keys(change).some(k=>['enabled','elo','side','autoPremove','premoveBreadth','premovePolicy','adaptiveStrength','endgamePremove','advancedPremove'].includes(k)))cancelNative('settings');
     prefs=clean({...prefs,...change});
-    if (Object.keys(change).some(key=>['enabled','elo','engine','side','autoMove','autoPremove','timeManagement','adaptiveDelay','adaptiveStrength','endgamePremove','advancedPremove','premoveBreadth','premovePolicy','delay','cursorMs'].includes(key))) {
+    if (Object.keys(change).some(key=>['enabled','elo','engine','profileVisible','profileTitle','side','autoMove','autoPremove','timeManagement','adaptiveDelay','adaptiveStrength','endgamePremove','advancedPremove','premoveBreadth','premovePolicy','delay','cursorMs'].includes(key))) {
       revision++; lastMove=null; backendState=null; clearArrow();
     }
     validationError='';
@@ -241,6 +274,8 @@
   input.enabled.addEventListener('change',()=>save({enabled:input.enabled.checked}));
   input.side.addEventListener('change',()=>save({side:input.side.value}));
   panel.querySelector('[aria-label="Mode mesin"]').addEventListener('change',e=>save({engine:e.target.value}));
+  panel.querySelector('[aria-label="Profil visual"]').addEventListener('change',e=>save({profileVisible:e.target.checked}));
+  panel.querySelector('[aria-label="Gelar visual"]').addEventListener('change',e=>save({profileTitle:e.target.value}));
   input.color.addEventListener('input',()=>save({color:input.color.value}));
   input.width.addEventListener('input',()=>save({width:Number(input.width.value)}));
   function stopAutomation() {

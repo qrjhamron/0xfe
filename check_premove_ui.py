@@ -51,6 +51,12 @@ def main():
         q.get_by_label('Mode mesin',exact=True).select_option('maia3')
         assert q.evaluate('()=>__chessArrowCoach.poll().prefs.engine')=='maia3'
         q.get_by_label('Mode mesin',exact=True).select_option('calibrated')
+        assert q.locator('[data-field="profile-card"]').is_visible()
+        q.get_by_label('Gelar visual',exact=True).select_option('IM')
+        assert q.locator('[data-field="profile-title"]').inner_text()=='IM'
+        q.get_by_label('Profil visual',exact=True).uncheck()
+        assert q.locator('[data-field="profile-card"]').is_hidden()
+        q.get_by_label('Profil visual',exact=True).check()
         print('PASS: adaptive delay locks the manual delay field and restores it when disabled')
         print('PASS: panel opens/closes from the header without removing the arrow coach state')
         q.get_by_label('Auto premove',exact=True).check()
