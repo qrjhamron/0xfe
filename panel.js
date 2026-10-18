@@ -44,6 +44,7 @@
   let nativeOwned=null,nativeRejected='',nativeRetryAt=0,nativeRetries=0,lastNativeSupported=false;
   let auditGame='',auditSequence=0,auditEvents=[],auditCounts={queued:0,used:0,observed:0,cancelled:0,rejected:0};
   let listenerGame=null,listenerHandler=null,branchState=null,branchSignature='';
+  let gameTitleObserver=null;
   let prefs;
   try { prefs = clean(JSON.parse(localStorage.getItem(KEY))); } catch { prefs = clean(null); }
   let revision = 0;
@@ -123,6 +124,7 @@
     #human-engine-panel input:disabled {opacity:.5;cursor:not-allowed}
     #human-engine-panel [data-field=error] {color:#f0b482;font-size:11px;margin:8px 0 0;min-height:0}
     #human-engine-panel [data-field=error]:empty {display:none}
+    .move-coach-game-title {display:inline-flex;align-items:center;vertical-align:middle;margin-inline-end:5px;padding:3px 5px;border-radius:4px;background:#c6443e;color:#fff;font:850 10px/1 system-ui,sans-serif;letter-spacing:.2px;box-shadow:0 1px 2px #0003}
   `;
   document.head.appendChild(style);
   const panel = document.createElement('section');
@@ -268,6 +270,7 @@
     avatar.alt='Avatar Chess.com';
     text('profile-rating',String(prefs.elo));
     text('profile-rank',`#${Math.max(1,2400-prefs.elo)}`);
+    applyGameTitle();
     panel.querySelector('.coach-switch span').textContent=prefs.enabled ? 'Aktif' : 'Nonaktif';
     text('engine-name',`LEVEL ${prefs.elo} · ${prefs.engine==='maia3'?'MAIA 3':'GUEST'}`);
     text('runtime-status',`${runtime.label||'CPU otomatis'} · ${runtime.reason||'Status engine lokal'}`);
@@ -282,6 +285,32 @@
       if (/chesscomfiles\.com|\/uploads\/v1\/user|avatar/i.test(source)) return source;
     }
     return '';
+  }
+  function applyGameTitle() {
+    const existing=[...document.querySelectorAll('[data-move-coach-game-title]')];
+    const title=prefs.profileVisible?prefs.profileTitle:'NONE';
+    if (title==='NONE') { existing.forEach(node=>node.remove()); return; }
+    const targets=[];
+    for (const container of document.querySelectorAll('.board-layout-player, #board-layout-player-top, #board-layout-player-bottom')) {
+      const target=container.querySelector('.player-tagline, [class*="player-tagline"]')||container.querySelector('.player-component');
+      if (target&&!targets.includes(target)) targets.push(target);
+    }
+    const keep=new Set();
+    for (const target of targets) {
+      let badge=target.querySelector(':scope > [data-move-coach-game-title]');
+      if (!badge) {
+        badge=document.createElement('span');
+        badge.dataset.moveCoachGameTitle='true';
+        badge.className='move-coach-game-title';
+        badge.setAttribute('aria-label',`Gelar ${title} lokal · visual saja`);
+        target.prepend(badge);
+      }
+      if (badge.textContent!==title) badge.textContent=title;
+      const badgeTitle=`${title} · gelar visual lokal`;
+      if (badge.title!==badgeTitle) badge.title=badgeTitle;
+      keep.add(badge);
+    }
+    existing.filter(node=>!keep.has(node)).forEach(node=>node.remove());
   }
   function save(change) {
     if(change.enabled===false||('side' in change&&change.side!==prefs.side))queuedMove=null;
@@ -549,6 +578,8 @@
     } catch {}
   }
   window.addEventListener('storage',storage);
+  gameTitleObserver=new MutationObserver(()=>applyGameTitle());
+  gameTitleObserver.observe(document.body,{subtree:true,childList:true});
   syncInputs();
   let backgroundTick=0;
   const timer=setInterval(()=>{
@@ -598,7 +629,7 @@
       if (!current||!current.eligible||payload.token!==current.token||payload.elo!==prefs.elo) return false;
       lastMove=payload;backendState=null;tick();return true;
     },
-    destroy() {cancelNative('destroy');if(listenerGame&&listenerHandler)try{listenerGame.offAll?.(listenerHandler);}catch{}alive=false;clearInterval(timer);window.removeEventListener('storage',storage);window.removeEventListener('keydown',escape);document.querySelector('#coach-mouse')?.remove();clearArrow();panel.remove();style.remove();delete window[GLOBAL];}
+    destroy() {cancelNative('destroy');if(listenerGame&&listenerHandler)try{listenerGame.offAll?.(listenerHandler);}catch{}alive=false;gameTitleObserver?.disconnect();clearInterval(timer);window.removeEventListener('storage',storage);window.removeEventListener('keydown',escape);document.querySelector('#coach-mouse')?.remove();document.querySelectorAll('[data-move-coach-game-title]').forEach(node=>node.remove());clearArrow();panel.remove();style.remove();delete window[GLOBAL];}
   };
   window[GLOBAL]=api;
   return tick();

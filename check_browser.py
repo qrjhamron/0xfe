@@ -13,7 +13,9 @@ from playwright.sync_api import sync_playwright
 HTML = '''<!doctype html><html><head><title>Coach integration checks</title></head>
 <body><nav><a class="sidebar-link" href="/member/GuestLocal">GuestLocal</a></nav>
 <main style="display:flex;gap:24px;margin:30px">
+<div id="board-layout-player-top" class="board-layout-player"><div class="player-component"><div class="player-tagline">GuestOther</div></div></div>
 <wc-chess-board style="display:block;position:relative;width:480px;height:480px;background:#b9cb9a"></wc-chess-board>
+<div id="board-layout-player-bottom" class="board-layout-player"><div class="player-component"><div class="player-tagline">GuestLocal</div></div></div>
 <aside id="board-layout-sidebar" style="width:300px"></aside></main>
 <script>
 const state={fen:'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',

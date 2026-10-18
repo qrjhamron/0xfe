@@ -37,6 +37,8 @@ def main():
               'configId':'v10-native-contract'}
         q.evaluate((ROOT/'panel.js').read_text(),opts)
         assert q.get_by_label('Tutup panel',exact=True).count()==1
+        assert q.locator('[data-move-coach-game-title]').count()==2
+        assert q.locator('[data-move-coach-game-title]').all_inner_texts()==['GM','GM']
         q.get_by_label('Tutup panel',exact=True).click()
         assert q.locator('.coach-body').is_hidden()
         assert q.get_by_label('Buka panel',exact=True).count()==1
@@ -59,7 +61,9 @@ def main():
         assert 'chesscomfiles.com' in q.evaluate('()=>__chessArrowCoach.poll().prefs.profileAvatar')
         q.get_by_label('Profil visual',exact=True).uncheck()
         assert q.locator('[data-field="profile-card"]').is_hidden()
+        assert q.locator('[data-move-coach-game-title]').count()==0
         q.get_by_label('Profil visual',exact=True).check()
+        assert q.locator('[data-move-coach-game-title]').count()==2
         print('PASS: adaptive delay locks the manual delay field and restores it when disabled')
         print('PASS: panel opens/closes from the header without removing the arrow coach state')
         q.get_by_label('Auto premove',exact=True).check()
