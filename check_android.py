@@ -118,4 +118,11 @@ assert 'posisi sudah berubah' in main_java and '"(none)"' in main_java
 assert 'Keep the UCI label' in main_java
 print('PASS: mobile eligibility fallbacks and move-display hardening are wired')
 
+# Regression guard for the vanishing arrow: the board drops foreign SVG
+# nodes on redraw, so the arrow must be re-applied natively every poll and
+# restored by the panel itself whenever it goes missing.
+assert 'function drawArrow()' in panel_js and 'drawArrow();' in panel_js
+assert 'shownPayloadJson' in main_java and 'shownKey' in main_java
+print('PASS: arrow is re-applied every poll and self-restored by the panel')
+
 print('ALL ANDROID CHECKS PASSED')

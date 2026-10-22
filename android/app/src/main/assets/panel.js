@@ -137,8 +137,43 @@
   }
   // Re-mount in the same frame when the page drops the panel, instead of
   // waiting for the next native poll to notice it missing.
-  const mountObserver = new MutationObserver(() => { if (alive && !panel.isConnected) mount(); });
+  const mountObserver = new MutationObserver(() => {
+    if (!alive) return;
+    if (!panel.isConnected) mount();
+    drawArrow();
+  });
   mountObserver.observe(document.documentElement, {childList: true, subtree: true});
+  // Chess.com redraws its board and drops foreign SVG nodes; the panel
+  // itself restores the arrow for the move it is currently showing.
+  function drawArrow() {
+    if (!lastMove?.move || !lastMove?.fen) return;
+    const board = document.querySelector(boardSelector);
+    if (!board?.game || board.game.getFEN() !== lastMove.fen) return;
+    if (board.querySelector('#human-engine-arrow')) return;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.id = 'human-engine-arrow';
+    svg.setAttribute('viewBox', '0 0 800 800');
+    svg.setAttribute('aria-label', 'Rekomendasi langkah');
+    svg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:30;overflow:visible';
+    svg.innerHTML = '<defs><marker id="human-arrow-tip" viewBox="0 0 12 12" refX="9" refY="6" markerWidth="3" markerHeight="3" orient="auto"><path d="M 0 0 L 12 6 L 0 12 Z"/></marker></defs><line stroke-linecap="round" opacity=".88" marker-end="url(#human-arrow-tip)"/>';
+    const flipped = !!board.game.getOptions?.().flipped;
+    const xy = square => {
+      const file = square.charCodeAt(0) - 97, rank = Number(square[1]) - 1;
+      return flipped ? [(7 - file) * 100 + 50, rank * 100 + 50]
+        : [file * 100 + 50, (7 - rank) * 100 + 50];
+    };
+    const move = lastMove.move;
+    const [x1, y1] = xy(move.slice(0, 2)), [x2, y2] = xy(move.slice(2, 4));
+    const length = Math.hypot(x2 - x1, y2 - y1) || 1;
+    const line = svg.querySelector('line');
+    line.setAttribute('stroke', prefs.color);
+    line.setAttribute('stroke-width', prefs.width);
+    svg.querySelector('marker path').setAttribute('fill', prefs.color);
+    for (const [key, value] of Object.entries({x1, y1, x2: x2 - (x2 - x1) * 18 / length, y2: y2 - (y2 - y1) * 18 / length})) line.setAttribute(key, value);
+    svg.dataset.fen = lastMove.fen;
+    svg.dataset.move = move;
+    board.appendChild(svg);
+  }
   function fromAPI(value) {
     if ([1, 'white', 'w'].includes(value)) return 'white';
     if ([2, 'black', 'b'].includes(value)) return 'black';
@@ -208,6 +243,7 @@
   function tick() {
     if (!alive) return null;
     mount();
+    drawArrow();
     const s = snapshot();
     const status = !s ? 'Menunggu papan…' : (STATUS[s.reason] || s.reason);
     let moveText = '—', detail = '';

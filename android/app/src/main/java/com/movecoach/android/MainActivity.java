@@ -169,6 +169,8 @@ public final class MainActivity extends Activity {
             JSONObject snapshot = new JSONObject((String) decoded);
             if (!snapshot.optBoolean("eligible")) {
                 latestKey = "";
+                shownKey = null;
+                shownPayloadJson = null;
                 webView.evaluateJavascript(CLEAR_ARROW_JS, null);
                 return;
             }
@@ -179,6 +181,14 @@ public final class MainActivity extends Activity {
                     : SkillLevel.DEFAULT;
             String key = token + "|" + skill;
             latestKey = key;
+            if (key.equals(shownKey) && shownPayloadJson != null) {
+                // Chess.com redraws its board and drops foreign SVG nodes.
+                // Re-apply the same arrow on every poll so it cannot vanish
+                // between the engine answer and the user's move.
+                webView.evaluateJavascript(
+                        "(" + overlayJs + ")(" + shownPayloadJson + ");", null);
+                return;
+            }
             if (key.equals(pendingKey)) {
                 return;
             }
@@ -198,6 +208,8 @@ public final class MainActivity extends Activity {
     private long retryAtMs;
     private int consecutiveFailures;
     private volatile String engineNotice = "";
+    private String shownKey;
+    private String shownPayloadJson;
 
     private void panelEngineStatus(String message) {
         engineNotice = message == null ? "" : message;
@@ -253,13 +265,18 @@ public final class MainActivity extends Activity {
             webView.evaluateJavascript(js, value -> {
                 if ("true".equals(value)) {
                     engineNotice = "";
+                    shownKey = key;
+                    shownPayloadJson = payloadJson;
                     return;
                 }
                 // The arrow was rejected; still show the move as panel text.
                 String reportJs = "(p => window.__chessArrowCoach?.report(p))("
                         + payloadJson + ");";
                 webView.evaluateJavascript(reportJs, shown -> {
-                    if (!"true".equals(shown)) {
+                    if ("true".equals(shown)) {
+                        shownKey = key;
+                        shownPayloadJson = payloadJson;
+                    } else {
                         panelEngineStatus("Langkah tidak tampil · papan "
                                 + value + " · panel " + shown);
                     }
