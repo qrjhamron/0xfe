@@ -23,8 +23,12 @@ fi
 
 NDK="${ANDROID_NDK_HOME:-${ANDROID_NDK_ROOT:-}}"
 if [ -n "$NDK" ]; then
-    CLANGXX=$(ls "$NDK"/toolchains/llvm/prebuilt/*/bin/clang++ | head -n 1)
-    STRIP=$(ls "$NDK"/toolchains/llvm/prebuilt/*/bin/llvm-strip | head -n 1)
+    CLANGXX=$(find "$NDK/toolchains/llvm/prebuilt" -name clang++ -path '*/bin/*' 2>/dev/null | head -n 1)
+    STRIP=$(find "$NDK/toolchains/llvm/prebuilt" -name llvm-strip -path '*/bin/*' 2>/dev/null | head -n 1)
+    if [ -z "$CLANGXX" ] || [ -z "$STRIP" ]; then
+        echo "NDK LLVM toolchain incomplete under $NDK" >&2
+        exit 1
+    fi
     cd "$SRC/engine"
     # API 26 matches the app minSdk. -static-libstdc++ keeps libc++ inside
     # the executable so nothing else must ship beside it.

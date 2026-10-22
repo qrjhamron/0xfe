@@ -18,7 +18,7 @@ jobs:
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r26d
-          local-cache: true
+          local-cache: false
 
       - name: Build Patricia (Android arm64, bionic)
         env:
