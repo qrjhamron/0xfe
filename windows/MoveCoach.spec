@@ -1,4 +1,4 @@
-# PyInstaller spec for the Windows V15 installer (Patricia-focused build).
+# PyInstaller spec for the Windows V16 installer (Patricia-only build).
 from pathlib import Path
 from PyInstaller.utils.hooks import collect_submodules
 
@@ -13,17 +13,14 @@ def required(path):
     return path
 
 
-required(RUNTIME / 'stockfish.exe')
 required(RUNTIME / 'patricia.exe')
 
 datas = [
     (str(PROJECT / 'panel.js'), '.'),
     (str(PROJECT / 'overlay.js'), '.'),
-    (str(PROJECT / 'calibration-profiles.json'), '.'),
     (str(PROJECT / 'opening_book.py'), '.'),
 ]
 binaries = [
-    (str(RUNTIME / 'stockfish.exe'), 'runtime'),
     (str(RUNTIME / 'patricia.exe'), 'runtime'),
 ]
 

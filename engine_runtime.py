@@ -14,114 +14,16 @@ import time
 
 import chess
 import chess.engine
-from maia_config import MODEL_NAME, MODEL_REVISION
-from lc0_config import WEIGHTS
 from app_paths import ROOT
 
 
-def _env_true(name):
-    return os.environ.get(name, '').strip().lower() in {'1', 'true', 'yes', 'on'}
-
-
-@lru_cache(maxsize=16)
-def _supported_lc0_backends(binary):
-    """Read the backend list from the bundled Lc0 binary once.
-
-    Windows releases are split into CPU and GPU builds.  Asking the binary for
-    its advertised UCI values keeps the selector safe when a user replaces the
-    bundled executable with a different build.
-    """
-    try:
-        result = subprocess.run([str(binary), '--help', '--show-hidden'],
-                                capture_output=True, text=True, timeout=4,
-                                check=False)
-        text = (result.stdout or '') + '\n' + (result.stderr or '')
-        matches = re.findall(r'VALUES:\s*([^\r\n]+)', text, re.IGNORECASE)
-        for raw in matches:
-            values = tuple(x.strip().lower().rstrip(']') for x in raw.split(',') if x.strip())
-            if any(name in values for name in ('eigen', 'blas', 'openblas', 'cudnn', 'cuda', 'opencl')):
-                return values
-    except (OSError, subprocess.SubprocessError):
-        pass
-    return ()
-
-
-@lru_cache(maxsize=1)
-def _gpu_present():
-    """Return whether Windows or an NVIDIA driver exposes a GPU probe."""
-    if _env_true('LC0_FORCE_CPU'):
-        return False
-    if _env_true('LC0_USE_GPU'):
-        return True
-    if os.name == 'nt':
-        powershell = shutil.which('powershell') or shutil.which('pwsh')
-        if powershell:
-            script = "(Get-CimInstance Win32_VideoController | Where-Object {$_.Name -notmatch 'Microsoft Basic|Remote Display'} | Measure-Object).Count"
-            try:
-                probe = subprocess.run([powershell, '-NoProfile', '-NonInteractive', '-Command', script],
-                                       capture_output=True, text=True, timeout=4, check=False)
-                if probe.returncode == 0 and int((probe.stdout or '0').strip() or 0) > 0:
-                    return True
-            except (OSError, ValueError, subprocess.SubprocessError):
-                pass
-    nvidia_smi = shutil.which('nvidia-smi')
-    if not nvidia_smi:
-        return False
-    try:
-        probe = subprocess.run([nvidia_smi, '-L'], capture_output=True, text=True,
-                               timeout=3, check=False)
-        return probe.returncode == 0 and bool((probe.stdout or '').strip())
-    except (OSError, subprocess.SubprocessError):
-        return False
-
-
-_LC0_RUNTIME = {'binary': None, 'backend': None, 'gpu': False,
-                'detected': False, 'reason': 'Belum diperiksa'}
-
-
-def _select_lc0_runtime():
-    """Choose a GPU Lc0 build when available, with a verified CPU fallback."""
-    cpu_binary = ROOT / 'runtime' / ('lc0.exe' if os.name == 'nt' else 'lc0')
-    gpu_binary = ROOT / 'runtime' / 'lc0-gpu.exe'
-    gpu_manifest = ROOT / 'runtime' / 'lc0-gpu-backend.txt'
-    explicit = os.environ.get('LC0_BACKEND', '').strip().lower()
-    gpu_backends = ('cudnn', 'cuda', 'opencl', 'onnx-dml', 'dml')
-    detected = _gpu_present()
-    _LC0_RUNTIME['detected'] = detected
-    gpu_ready = gpu_binary.is_file() and (os.name != 'nt' or gpu_manifest.is_file())
-    if gpu_ready and (detected or explicit in gpu_backends):
-        supported = _supported_lc0_backends(str(gpu_binary))
-        backend = explicit if explicit and explicit != 'auto' else next(
-            (name for name in gpu_backends if name in supported), None)
-        if backend and (not supported or backend in supported):
-            _LC0_RUNTIME.update(binary=gpu_binary, backend=backend, gpu=True,
-                                reason=f'GPU terdeteksi · backend {backend}')
-            return gpu_binary, backend
-        _LC0_RUNTIME['reason'] = 'GPU terdeteksi, tetapi backend DirectML tidak tersedia'
-    elif detected and not gpu_ready:
-        _LC0_RUNTIME['reason'] = 'GPU terdeteksi, tetapi paket GPU belum lengkap · memakai CPU'
-    elif detected:
-        _LC0_RUNTIME['reason'] = 'GPU terdeteksi, tetapi binary GPU tidak ditemukan'
-    else:
-        _LC0_RUNTIME['reason'] = 'GPU tidak terdeteksi · memakai CPU'
-    supported = _supported_lc0_backends(str(cpu_binary))
-    backend = explicit if explicit and explicit != 'auto' else None
-    if backend not in supported:
-        preferred = ('blas', 'openblas', 'eigen') if os.name == 'nt' else ('eigen', 'openblas', 'blas')
-        backend = next((name for name in preferred if name in supported), backend or preferred[0])
-    _LC0_RUNTIME.update(binary=cpu_binary, backend=backend, gpu=False)
-    return cpu_binary, backend
-
-
-def lc0_runtime_status():
+def engine_runtime_status():
     """Small public status object used by the panel and diagnostics."""
-    if _LC0_RUNTIME['binary'] is None:
-        _select_lc0_runtime()
-    return {'backend': _LC0_RUNTIME['backend'] or 'cpu',
-            'gpu': bool(_LC0_RUNTIME['gpu']),
-            'detected': bool(_LC0_RUNTIME['detected']),
-            'reason': _LC0_RUNTIME['reason'],
-            'label': ('GPU otomatis' if _LC0_RUNTIME['gpu'] else 'CPU otomatis')}
+    binary = ROOT / 'runtime' / ('patricia.exe' if os.name == 'nt' else 'patricia')
+    ready = binary.is_file()
+    return {'backend': 'patricia', 'gpu': False, 'detected': ready,
+            'reason': 'Patricia 5.1 terpasang' if ready else 'Patricia belum terpasang',
+            'label': 'Patricia 5.1' if ready else 'Patricia belum terpasang'}
 
 
 @dataclass(frozen=True)
@@ -152,48 +54,11 @@ def patricia_skill_for_elo(elo):
                key=lambda index: abs(PATRICIA_SKILL_ELO[index] - elo)) + 1
 
 
-def engine_specs(stockfish):
-    python = ROOT / '.venv' / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
-    # A frozen Windows build ships Maia as a sidecar executable. Source builds
-    # continue to use the project venv, which keeps local development light.
-    maia_worker = ROOT / ('maia-worker.exe' if os.name == 'nt' else 'maia-worker')
-    maia_runner = [str(maia_worker)] if getattr(sys, 'frozen', False) and maia_worker.exists() else [
-        str(python if python.exists() else sys.executable), '-m', 'maia3.uci']
-    maia = maia_runner + [
-            '--model', MODEL_NAME, '--revision', MODEL_REVISION, '--device', 'cpu', '--no-use-amp',
-            '--use-uci-history', '--local-files-only', '--cache-dir',
-            str(ROOT / 'runtime' / 'maia3-cache'), '--temperature', '0', '--multipv', '1']
-    maia_ready = (ROOT / 'runtime' / 'maia3-install.json').exists()
-    if getattr(sys, 'frozen', False):
-        maia_ready = maia_ready and maia_worker.exists()
-    else:
-        maia_ready = maia_ready and python.exists()
+def engine_specs(stockfish=None):
+    """Only Patricia ships now; the argument is kept for old call sites."""
     patricia = ROOT / 'runtime' / ('patricia.exe' if os.name == 'nt' else 'patricia')
-    specs = {
-        'stockfish': EngineSpec('stockfish', 'Stockfish', stockfish, 1320, 3190),
-        # Restrict the UI to the model's supported human rating range, not the broad UCI input range.
-        'maia3': EngineSpec('maia3', 'Maia 3 · 5M', maia, 600, 2600,
-                            maia_ready),
-        'patricia': EngineSpec('patricia', 'Patricia · agresif', [str(patricia)], 500, 3000,
-                               patricia.is_file())}
-    binary, backend = _select_lc0_runtime()
-    cpu_binary = ROOT / 'runtime' / ('lc0.exe' if os.name == 'nt' else 'lc0')
-    cpu_supported = _supported_lc0_backends(str(cpu_binary))
-    cpu_backend = next((name for name in (('blas', 'openblas', 'eigen') if os.name == 'nt'
-                                          else ('eigen', 'openblas', 'blas'))
-                        if name in cpu_supported), 'blas' if os.name == 'nt' else 'eigen')
-    for key, (label, filename, _, size) in WEIGHTS.items():
-        weight = ROOT / 'runtime' / 'lc0-weights' / (filename + '.pb.gz')
-        command = [str(binary), '--weights=' + str(weight), '--backend=' + backend,
-                   '--threads=1', '--minibatch-size=1', '--nncache=20000']
-        fallback = None
-        if _LC0_RUNTIME['gpu']:
-            fallback = [str(cpu_binary), '--weights=' + str(weight), '--backend=' + cpu_backend,
-                        '--threads=1', '--minibatch-size=1', '--nncache=20000']
-        specs[key] = EngineSpec(key, f'Lc0 · {label} · {size}', command, 600, 3190,
-                               binary.is_file() and weight.is_file() and (ROOT / 'runtime/lc0-install.json').is_file(),
-                               'nodes', fallback)
-    return specs
+    return {'patricia': EngineSpec('patricia', 'Patricia · agresif', [str(patricia)],
+                                   500, 3000, patricia.is_file())}
 
 
 
@@ -220,10 +85,11 @@ class Request:
     # calibrated single-PV path unless a test opts in explicitly.
     blunders: bool = False
     panic: bool = False
+    think_ms: int = 0
 
     @property
     def cache_key(self):
-        return (self.fen, self.elo, self.root_fen, self.history, self.nodes, self.analysis, self.multipv)
+        return (self.fen, self.elo, self.root_fen, self.history, self.nodes, self.analysis, self.multipv, self.think_ms)
 
 
 def reconstruct_board(request):
@@ -293,26 +159,13 @@ class EngineWorker:
 
     def _start(self):
         environment = dict(os.environ)
-        environment.update({'OMP_NUM_THREADS': str(self.threads), 'MKL_NUM_THREADS': str(self.threads),
-                            'OPENBLAS_NUM_THREADS': str(self.threads), 'HF_HUB_OFFLINE': '1',
-                            'HF_HOME': str(ROOT / 'runtime' / 'huggingface')})
+        environment.update({'OMP_NUM_THREADS': str(self.threads),
+                            'MKL_NUM_THREADS': str(self.threads)})
         self.engine = chess.engine.SimpleEngine.popen_uci(self.active_command, timeout=20, env=environment)
-        if self.spec.key == 'stockfish':
-            elo = self.engine.options.get('UCI_Elo')
-            if not elo or 'UCI_LimitStrength' not in self.engine.options:
-                raise chess.engine.EngineError('Stockfish does not support Elo limiting')
-            self.engine.configure({'UCI_LimitStrength': True, 'Threads': self.threads, 'Hash': self.hash_mb})
-        elif self.spec.key == 'maia3':
-            # python-chess manages MultiPV itself; its default is already set by the CLI.
-            self.engine.configure({'Temperature': '0'})
-        elif self.spec.key == 'patricia':
-            if 'Skill_Level' not in self.engine.options:
-                raise chess.engine.EngineError('Patricia does not support Skill_Level')
-            self.engine.configure({'Threads': self.threads, 'Hash': self.hash_mb})
-        elif self.spec.kind == 'nodes':
-            self.engine.configure({'Threads': self.threads, 'MinibatchSize': 1,
-                                   'NNCacheSize': 20000, 'SmartPruningFactor': '0', 'RamLimitMb': 128, 'MaxPrefetch': 0})
-        self.engine.ping()  # Preload Maia inside its worker, without blocking the browser loop.
+        if 'Skill_Level' not in self.engine.options:
+            raise chess.engine.EngineError('Patricia does not support Skill_Level')
+        self.engine.configure({'Threads': self.threads, 'Hash': self.hash_mb})
+        self.engine.ping()
         self.engine.timeout = 3
         self.configured_elo = None
 
@@ -326,8 +179,7 @@ class EngineWorker:
         board = reconstruct_board(request)
         if board.is_game_over():
             return {'move': None, 'cached': False}
-        key = ((request.fen, request.nodes, request.root_fen, request.history, request.analysis, request.multipv)
-               if self.spec.kind == 'nodes' else request.cache_key)
+        key = request.cache_key
         if key in self.cache:
             cached = self.cache.pop(key)
             if chess.Move.from_uci(cached['move']) in board.legal_moves:
@@ -340,20 +192,16 @@ class EngineWorker:
                     self._start()
                 if self.stopped:
                     return {'move': None, 'cached': False}
-                if self.spec.kind != 'nodes' and self.configured_elo != request.elo:
-                    if self.spec.key == 'stockfish':
-                        option, value = 'UCI_Elo', request.elo
-                    elif self.spec.key == 'patricia':
-                        option, value = 'Skill_Level', patricia_skill_for_elo(request.elo)
-                    else:
-                        option, value = 'Elo', request.elo
-                    self.engine.configure({option: value})
+                if self.configured_elo != request.elo:
+                    self.engine.configure(
+                        {'Skill_Level': patricia_skill_for_elo(request.elo)})
                     self.configured_elo = request.elo
-                limit = (chess.engine.Limit(nodes=request.nodes, time=.4 if request.analysis else 2) if self.spec.kind == 'nodes' else
-                         chess.engine.Limit(time=min(.2,self.think) if request.analysis else self.think) if self.spec.key in ('stockfish', 'patricia') else chess.engine.Limit(nodes=1))
+                budget = request.think_ms / 1000 if request.think_ms else self.think
+                limit = chess.engine.Limit(
+                    time=min(.25, budget) if request.analysis else budget)
                 self.metrics['searches'] += 1
                 # Stable game identity retains engine state/hash between moves.
-                identity = (request.owner, request.game, request.nodes) if self.spec.kind == 'nodes' else (request.owner, request.game)
+                identity = (request.owner, request.game)
                 previous=self.incremental.get(identity)
                 if previous and request.history[:len(previous[0])] == previous[0]:
                     self.metrics['incremental_hits'] += 1
@@ -388,12 +236,6 @@ class EngineWorker:
                 return {**computed, 'cached': False}
             except (chess.engine.EngineError, TimeoutError, OSError) as exc:
                 self._drop_engine()
-                if self.spec.fallback_command and not self.using_fallback:
-                    self.active_command = self.spec.fallback_command
-                    self.using_fallback = True
-                    logging.warning('%s GPU unavailable (%s); falling back to CPU',
-                                    self.spec.label, type(exc).__name__)
-                    continue
                 if self.stopped:
                     return {'move': None, 'cached': False}
                 self.metrics['restarts'] += 1
@@ -407,10 +249,6 @@ class EngineWorker:
                 with self.condition:
                     self.condition.wait_for(lambda: self.pending or self.stopped, timeout=self.idle_timeout)
                     if not self.pending and not self.stopped:
-                        # Release dormant neural models without losing their small move cache.
-                        if self.spec.kind == 'nodes' and self.engine is not None:
-                            self._drop_engine()
-                            self.metrics['idle_unloads'] += 1
                         continue
                     if self.stopped:
                         return

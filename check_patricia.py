@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import chess
 
-from arrows import engine_for_position, selected_preset
+from arrows import engine_for_position, scaled_think_ms, selected_preset
 from engine_runtime import EnginePool, Request, engine_specs, patricia_skill_for_elo
 from presets import Preset
 
@@ -67,4 +67,13 @@ if specs['patricia'].available:
     print('PASS: Patricia worker returns legal moves at levels 1500/1700/2000')
 else:
     print('SKIP: Patricia binary missing; run setup_patricia.py for the UCI check')
+# Think time follows the phase policy and shrinks under time panic.
+assert scaled_think_ms(400, 0.75) == 300
+assert scaled_think_ms(400, 1.25) == 500
+assert scaled_think_ms(400, 1.0, 5000) == 100
+assert scaled_think_ms(400, 1.0, 20000) == 200
+assert scaled_think_ms(400, 1.0, None) == 400
+assert scaled_think_ms(5000, 1.25) == 4000 and scaled_think_ms(10, 1.0) == 50
+print('PASS: Patricia think time scales with phase and panic, clamped 50-4000 ms')
+
 print('ALL PATRICIA CHECKS PASSED')

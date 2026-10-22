@@ -1,5 +1,5 @@
 ({defaults, presets, configId, runtime = {}, engines = {}}) => {
-  const VERSION = 15;
+  const VERSION = 16;
   const GLOBAL = '__chessArrowCoach';
   if (window[GLOBAL]?.version === VERSION && window[GLOBAL]?.configId === configId) return window[GLOBAL].read();
   window[GLOBAL]?.destroy();
@@ -9,7 +9,6 @@
   const KEY = 'chess-arrow-coach-v2';
   const choices=presets;
   const levels=Object.keys(choices).map(Number).sort((a,b)=>a-b);
-  const maiaAvailable=engines?.maia3?.available===true;
   const patriciaAvailable=engines?.patricia?.available===true;
   const profileTitles=['NONE','GM','IM','FM','NM','CM','WGM','WIM'];
   // One stable player identity per installation. The daemon seeds every
@@ -27,7 +26,7 @@
     const elo=levels.includes(wanted)?wanted:
       (available.includes(initial.elo)?initial.elo:available[0]||initial.elo);
     return {
-      elo, engine:(maiaAvailable && ['maia3','hybrid'].includes(value?.engine))||(patriciaAvailable && value?.engine==='patricia')?value.engine:(patriciaAvailable?'patricia':'calibrated'), profileVisible:value?.profileVisible!==false,
+      elo, engine:'patricia', profileVisible:value?.profileVisible!==false,
       profileTitle:profileTitles.includes(String(value?.profileTitle||''))?String(value.profileTitle):'GM',
       persona:validPersona(value?.persona)?value.persona:newPersona(),
       autoMove:aliveAutomation && value?.autoMove===true, autoPremove:alivePremove && value?.autoPremove===true,
@@ -133,7 +132,6 @@
     <div class="coach-levels" role="group" aria-labelledby="coach-elo-label"></div>
     <div class="coach-settings" style="grid-template-columns:1fr">
       <label class="coach-field">Saya bermain<select aria-label="Warna pemain"><option value="auto">Otomatis</option><option value="white">Putih</option><option value="black">Hitam</option><option value="both">Kedua sisi · analisis</option></select></label>
-      <label class="coach-field">Mode mesin<select aria-label="Mode mesin"><option value="calibrated">Lc0 · terkalibrasi</option><option value="maia3" ${maiaAvailable?'':'disabled'}>Maia 3 · gaya manusia${maiaAvailable?'':' (belum terpasang)'}</option><option value="hybrid" ${maiaAvailable?'':'disabled'}>Hybrid · Maia tenang + Lc0 taktis${maiaAvailable?'':' (belum terpasang)'}</option><option value="patricia" ${patriciaAvailable?'':'disabled'}>Patricia · agresif${patriciaAvailable?'':' (belum terpasang)'}</option></select></label>
       <label class="coach-switch"><input type="checkbox" aria-label="Profil visual">Profil visual</label>
       <label class="coach-field">Gelar visual<select aria-label="Gelar visual"><option>GM</option><option>IM</option><option>FM</option><option>NM</option><option>CM</option><option>WGM</option><option>WIM</option><option>NONE</option></select></label>
     </div>
@@ -218,7 +216,6 @@
   }
   function syncInputs() {
     for (const [elo,button] of buttons) button.setAttribute('aria-pressed',String(elo===prefs.elo));
-    panel.querySelector('[aria-label="Mode mesin"]').value=prefs.engine;
     panel.querySelector('[aria-label="Profil visual"]').checked=prefs.profileVisible;
     panel.querySelector('[aria-label="Gelar visual"]').value=prefs.profileTitle;
     panel.querySelector('[aria-label="Auto move"]').checked=prefs.autoMove;
@@ -248,7 +245,7 @@
     text('width',String(prefs.width));
     applyGameTitle();
     panel.querySelector('.coach-switch span').textContent=prefs.enabled ? 'Aktif' : 'Nonaktif';
-    text('engine-name',`LEVEL ${prefs.elo} · ${prefs.engine==='maia3'?'MAIA 3':prefs.engine==='hybrid'?'HYBRID':prefs.engine==='patricia'?'PATRICIA':'GUEST'}`);
+    text('engine-name',`LEVEL ${prefs.elo} · PATRICIA`);
     text('runtime-status',`${runtime.label||'CPU otomatis'} · ${runtime.reason||'Status engine lokal'}`);
     const evidence=choices[prefs.elo];
     text('footer',`${evidence.target_within_interval?'Level latihan':'Target tentatif'} · estimasi lokal ≈${Math.round(evidence.estimate/10)*10}`);
@@ -297,7 +294,6 @@
   }
   input.enabled.addEventListener('change',()=>save({enabled:input.enabled.checked}));
   input.side.addEventListener('change',()=>save({side:input.side.value}));
-  panel.querySelector('[aria-label="Mode mesin"]').addEventListener('change',e=>save({engine:e.target.value}));
   panel.querySelector('[aria-label="Profil visual"]').addEventListener('change',e=>save({profileVisible:e.target.checked}));
   panel.querySelector('[aria-label="Gelar visual"]').addEventListener('change',e=>save({profileTitle:e.target.value}));
   input.color.addEventListener('input',()=>save({color:input.color.value}));
@@ -548,9 +544,11 @@
       ready:s.phase==='review'||prefs.side==='both'?`Analisis · ${s.turn==='white'?'Putih':'Hitam'} melangkah`:`Giliranmu · ${label}`};
     text('status',statuses[s.reason]);
     text('move',lastMove?.token===s.token?lastMove.san:'—');
+    const formatScore=(cp,fen)=>{if(Math.abs(cp)>=99000)return (fen||'').split(' ')[1]==='b'?(cp<0?'M':'-M'):(cp>0?'M':'-M');const pawns=((fen||'').split(' ')[1]==='b'?-cp:cp)/100;return (pawns>0?'+':'')+pawns.toFixed(1);};
     const phaseLabels={opening:'opening',middlegame:'middlegame',endgame:'endgame',tactical:'taktis',fixed:''};
     const phaseDetail=lastMove?.adaptive_strength&&phaseLabels[lastMove.phase]?` · ${phaseLabels[lastMove.phase]}`:'';
-    text('detail',lastMove?.token===s.token?`${lastMove.move.slice(0,2)} → ${lastMove.move.slice(2,4)} · ${lastMove.cached?'cache':`${lastMove.latency_ms} ms`}${phaseDetail}`:
+    const scoreDetail=lastMove?.token===s.token&&typeof lastMove.score_cp==='number'?` · ${formatScore(lastMove.score_cp,lastMove.fen)}`:'';
+    text('detail',lastMove?.token===s.token?`${lastMove.move.slice(0,2)} → ${lastMove.move.slice(2,4)} · ${lastMove.cached?'cache':`${lastMove.latency_ms} ms`}${scoreDetail}${phaseDetail}`:
       s.eligible?(backendState?.message||'Mencari rekomendasi…'):s.reason==='opponent'?'Panah kembali saat giliranmu':'');
     text('error',validationError||backendState?.error||'');
     s.rendered=!!svg&&svg.dataset.token===s.token&&svg.dataset.flipped===String(s.flipped);

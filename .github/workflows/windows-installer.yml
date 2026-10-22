@@ -28,12 +28,12 @@ jobs:
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: MoveCoach-Windows-v15
-          path: windows/Output/MoveCoach-Setup-v15.exe
+          name: MoveCoach-Windows-v16
+          path: windows/Output/MoveCoach-Setup-v16.exe
       - name: Publish GitHub Release
         if: startsWith(github.ref, 'refs/tags/move-coach-v')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: Move Coach ${{ github.ref_name }}
-          files: windows/Output/MoveCoach-Setup-v15.exe
+          files: windows/Output/MoveCoach-Setup-v16.exe

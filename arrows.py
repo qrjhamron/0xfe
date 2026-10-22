@@ -16,7 +16,7 @@ import math
 
 import chess
 from playwright.sync_api import sync_playwright, Error as BrowserError
-from engine_runtime import EnginePool, Request, engine_specs, lc0_runtime_status
+from engine_runtime import EnginePool, Request, engine_specs, engine_runtime_status
 from auto_moves import AutoMoves
 from premove import Premove
 from session_audit import SessionAudit
@@ -61,37 +61,22 @@ def tactical_spot(fen):
 
 
 def selected_preset(snapshot, specs):
-    """Resolve the calibrated level, with optional Maia/Patricia modes."""
-    elo = snapshot['prefs']['elo']
-    if snapshot.get('prefs', {}).get('engine') == 'patricia' and specs['patricia'].available:
-        # Patricia carries its own strength table, so it must keep working
-        # even when the calibrated Lc0 weights are not installed.
-        if elo in PRESETS:
-            return replace(PRESETS[elo], engine='patricia')
-    preset = resolve_preset(elo, specs)
-    if snapshot.get('prefs', {}).get('engine') == 'maia3' and specs['maia3'].available:
-        return replace(preset, engine='maia3')
-    return preset
+    """Resolve the panel level; Patricia is the only engine."""
+    return resolve_preset(snapshot['prefs']['elo'], specs)
 
 
 def engine_for_position(requested, preset, phase_budget, fen, specs):
-    """Resolve the main-move engine, including the human hybrid mode.
+    """Patricia plays every position; missing binary keeps the preset name."""
+    return 'patricia' if specs['patricia'].available else preset.engine
 
-    'maia3' always uses the human net. 'hybrid' uses Maia on quiet positions
-    and the calibrated Lc0 preset when the side to move is in check, so
-    forcing tactics keep the calibrated strength. Anything else, or a missing
-    Maia install, keeps the calibrated preset engine.
-    """
-    maia_ok = specs['maia3'].available
-    if requested == 'maia3' and maia_ok:
-        return 'maia3'
-    if requested == 'patricia' and specs['patricia'].available:
-        return 'patricia'
-    if requested == 'hybrid' and maia_ok:
-        phase = (phase_budget.phase if phase_budget and phase_budget.phase != 'fixed'
-                 else classify_phase(chess.Board(fen)))
-        return preset.engine if phase == 'tactical' else 'maia3'
-    return preset.engine
+
+def scaled_think_ms(base_ms, multiplier=1.0, remaining_ms=None, panic=True):
+    """Phase- and panic-scaled Patricia think time, clamped to 50-4000 ms."""
+    ms = base_ms * multiplier
+    if panic:
+        ms = ms * panic_nodes(100, remaining_ms) / 100
+    return max(50, min(4000, round(ms)))
+
 
 def choose_candidate(request, result):
     candidates=result.get('candidates') or []
@@ -164,21 +149,13 @@ def run(args, specs):
     availability=''.join('1' if specs[p.engine].available else '0' for p in PRESETS.values())
     assets_id=hashlib.sha256((panel+overlay).encode()).hexdigest()[:12]
     panel_id=f'{CONFIG_ID}:{availability}:{assets_id}'
-    panel_presets = public_presets(specs)
-    if specs['patricia'].available:
-        # Patricia carries its own strength table: every panel level stays
-        # playable through it even without the calibrated Lc0 weights.
-        for info in panel_presets.values():
-            info['available'] = True
     panel_options = {'defaults': {'elo': args.elo, 'bothSides': args.both_sides,
-                                  'appVersion': '15', 'releaseUrl': 'https://github.com/qrjhamron/0xfe/releases'},
-                     'runtime': lc0_runtime_status(),
-                     'engines': {'maia3': {'label': 'Maia 3 · gaya manusia',
-                                           'available': specs['maia3'].available},
-                                 'patricia': {'label': 'Patricia · agresif',
+                                  'appVersion': '16', 'releaseUrl': 'https://github.com/qrjhamron/0xfe/releases'},
+                     'runtime': engine_runtime_status(),
+                     'engines': {'patricia': {'label': 'Patricia · agresif',
                                               'available': specs['patricia'].available}},
-                     'presets': panel_presets, 'configId': panel_id}
-    logging.info('Lc0 runtime: %s', panel_options['runtime']['label'])
+                     'presets': public_presets(specs), 'configId': panel_id}
+    logging.info('Patricia runtime: %s', panel_options['runtime']['label'])
     # Panel prefs are the source of truth; this file-backed value only covers
     # snapshots from panels that predate the persona preference.
     fallback_persona = ensure_persona()
@@ -221,7 +198,7 @@ def run(args, specs):
                         try:
                             response = page.evaluate(POLL)
                             snapshot = response.get('snapshot')
-                            if response.get('version') != 15 or response.get('configId') != panel_id:
+                            if response.get('version') != 16 or response.get('configId') != panel_id:
                                 snapshot = page.evaluate(panel, panel_options)
                             if snapshot:
                                 native_audit=page.evaluate('()=>window.__chessArrowCoach?.audit()')
@@ -298,23 +275,29 @@ def run(args, specs):
                                 continue
                             if state['pending'] == token or time.monotonic() < state['retry_at']:
                                 continue
-                            # Human blunders need a candidate pool, so the main search
-                            # runs bounded MultiPV when the toggle is on. Maia has no
-                            # MultiPV option and safely stays single-PV. With the
-                            # toggle off, main moves keep the calibrated single-PV path.
-                            multipv_capable = specs[model].kind == 'nodes' or model == 'stockfish'
-                            analysis_mode = bool(blunders and multipv_capable)
+                            # Patricia always searches with a small MultiPV pool:
+                            # the panel needs it for the score and the weaker
+                            # alternative arrows, and the blunder toggle reuses
+                            # it for human slips. Think time follows the phase
+                            # policy and shrinks under time panic.
+                            analysis_mode = True
                             clocks = snapshot.get('clocks') or {}
                             remaining = clocks.get(snapshot.get('turn'))
                             panic_active = (bool(snapshot.get('prefs', {}).get('panicPlay', True))
                                             and isinstance(remaining, (int, float)) and remaining < 30000)
+                            think_ms = scaled_think_ms(
+                                round(args.think * 1000),
+                                phase_budget.multiplier if phase_budget else 1.0,
+                                remaining if panic_active else None,
+                                panic=bool(snapshot.get('prefs', {}).get('panicPlay', True)))
                             request = Request(owner=state['owner'], token=token,
                                               game=snapshot['gameId'], fen=snapshot['fen'], elo=elo,
                                               root_fen=snapshot.get('rootFen', ''),
                                               history=tuple(snapshot.get('history', ())),
                                               nodes=preset.nodes,
                                               analysis=analysis_mode,
-                                              multipv=multipv_for_elo(elo) if analysis_mode else 1,
+                                              multipv=max(3, multipv_for_elo(elo)),
+                                              think_ms=think_ms,
                                               persona=persona, blunders=blunders, panic=panic_active,
                                               phase=phase_budget.phase if phase_budget else 'fixed',
                                               base_nodes=(scaled_nodes(PRESETS[elo].nodes,
@@ -352,7 +335,10 @@ def run(args, specs):
                             except BrowserError:
                                 pass
                             continue
-                        chosen,source=choose_candidate(request,result)
+                        if request.blunders:
+                            chosen, source = choose_candidate(request, result)
+                        else:
+                            chosen, source = result.get('move'), 'patricia'
                         if not chosen:
                             continue
                         move = chess.Move.from_uci(chosen)
@@ -364,7 +350,8 @@ def run(args, specs):
                                    'latency_ms': result['latency_ms'],
                                    'cached': result['cached'],'source':source,
                                    'multipv':request.multipv,
-                                   'candidates':result.get('candidates',[])}
+                                   'candidates':result.get('candidates',[]),
+                                   'score_cp': (result.get('candidates') or [{}])[0].get('score_cp')}
                         payload.update({'phase': request.phase,
                                         'nodes_base': request.base_nodes or request.nodes,
                                         'nodes_effective': request.nodes,
@@ -377,14 +364,11 @@ def run(args, specs):
                             continue
                         state.update(render=payload, failures=0, retry_at=0)
                         worker = pool.workers[result['engine']]
-                        runtime_status = lc0_runtime_status()
-                        if getattr(worker, 'using_fallback', False):
-                            runtime_status = {**runtime_status, 'gpu': False, 'label': 'CPU fallback',
-                                              'reason': 'GPU gagal dimuat · CPU fallback aktif'}
+                        runtime_status = engine_runtime_status()
                         write_status(args.status, {**payload, 'engine': result['engine'], 'nodes': request.nodes, 'updated_at': time.time(),
                                                   'url': page.url.split('?', 1)[0],
                                                   'runtime': runtime_status,
-                                                  'strength_limited': result['engine'] == 'stockfish',
+                                                  'strength_limited': False,
                                                   'threads': args.threads, 'hash_mb': args.hash_mb,
                                                   'node_multiplier': args.node_multiplier,
                                                   'phase': payload.get('phase', 'fixed'),
@@ -407,7 +391,7 @@ def run(args, specs):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--cdp', default=os.getenv('CHESS_CDP', 'http://127.0.0.1:9222'))
-    parser.add_argument('--engine', default=os.getenv('STOCKFISH_PATH'))
+    parser.add_argument('--engine', help=argparse.SUPPRESS)  # legacy no-op
     parser.add_argument('--elo', type=int, choices=list(PRESETS), default=1500)
     parser.add_argument('--think', type=float, default=.4)
     parser.add_argument('--threads', type=int, default=1)
@@ -420,21 +404,15 @@ def main():
     parser.add_argument('--audit-dir', type=Path, default=ROOT / 'runtime/games')
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-    configured = ROOT / 'runtime' / ('stockfish.exe' if os.name == 'nt' else 'stockfish')
-    path = args.engine or (str(configured) if configured.exists() else shutil.which('stockfish'))
-    if not path:
-        parser.error('Stockfish missing. Run install.py or pass --engine PATH.')
     if (not .05 <= args.think <= 10 or not 1 <= args.threads <= 8 or
             not 16 <= args.hash_mb <= 512 or not 1 <= args.cache_size <= 1024 or
             not 1 <= args.node_multiplier <= 32):
         parser.error('Use --think .05–10, --threads 1–8, --hash-mb 16–512, --cache-size 1–1024, --node-multiplier 1–32.')
-    specs = engine_specs(path)
+    specs = engine_specs()
     try:
         resolve_preset(args.elo, specs)
     except ValueError as exc:
-        if not specs['patricia'].available:
-            parser.error(str(exc))
-        logging.warning('%s; mode Patricia tetap tersedia', exc)
+        parser.error(str(exc))
     try:
         with InstanceLock():
             run(args, specs)

@@ -22,10 +22,6 @@ $VenvPython = Join-Path $Root '.venv\Scripts\python.exe'
 & $VenvPython -m pip install -r requirements.txt pyinstaller==6.16.0
 if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed.' }
 
-if (-not (Test-Path 'runtime\stockfish.exe')) {
-    & $VenvPython install.py --skip-lc0
-    if ($LASTEXITCODE -ne 0) { throw 'Stockfish installation failed.' }
-}
 # Patricia-focused build: no Lc0 binaries/weights and no Maia checkpoint
 # are downloaded or packaged. Lc0/Maia modes remain available only in
 # source installs that provide those engines themselves.
