@@ -110,4 +110,12 @@ assert 'STARTING_FEN' in main_java and 'Mesin siap' in main_java
 assert 'report(p)' in main_java and 'Langkah tidak tampil' in main_java
 print('PASS: stable tokens, named rejections, text fallback, and engine self-test')
 
+# Mobile eligibility must not depend on desktop-only signals: a named game
+# is never idle, orientation is the side fallback, SAN failures keep the
+# move, and discarded answers say so in the panel.
+assert 'headersPresent' in panel_js and 'orientationSide' in panel_js
+assert 'posisi sudah berubah' in main_java and '"(none)"' in main_java
+assert 'Keep the UCI label' in main_java
+print('PASS: mobile eligibility fallbacks and move-display hardening are wired')
+
 print('ALL ANDROID CHECKS PASSED')

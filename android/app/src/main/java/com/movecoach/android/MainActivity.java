@@ -209,10 +209,14 @@ public final class MainActivity extends Activity {
     private void showMove(String key, String fen, String token, int skill,
                           PatriciaEngine.Result result) {
         if (destroyed || !key.equals(latestKey)) {
+            if (!destroyed) {
+                panelEngineStatus("Jawaban mesin dibuang · posisi sudah berubah");
+            }
             return;
         }
         pendingKey = "";
-        if (result == null || result.move == null) {
+        if (result == null || result.move == null || result.move.length() < 4
+                || result.move.equals("(none)")) {
             consecutiveFailures++;
             retryAtMs = android.os.SystemClock.uptimeMillis()
                     + Math.min(5000L, 1000L * consecutiveFailures);
@@ -223,8 +227,17 @@ public final class MainActivity extends Activity {
         }
         consecutiveFailures = 0;
         retryAtMs = 0;
+        // SAN is only a label: a conversion problem must never eat the move.
+        String san = result.move;
         try {
-            String san = San.toSan(fen, result.move);
+            String converted = San.toSan(fen, result.move);
+            if (converted != null) {
+                san = converted;
+            }
+        } catch (RuntimeException ignored) {
+            // Keep the UCI label and still show the arrow.
+        }
+        try {
             boolean whiteToMove = fen.split(" ")[1].equals("w");
             JSONObject payload = new JSONObject();
             payload.put("fen", fen);

@@ -166,16 +166,23 @@
     const atEnd = g.isAtEndOfLine?.() !== false;
     const online = /^\/game\//.test(location.pathname);
     const playerColor = fromAPI(g.getPlayingAs?.()) || fromAPI(board.state?.playingAs) || identityColor(headers);
+    const headersPresent = !!(headers.White || headers.Black);
     let phase = 'playing';
     if (result !== '*' && atEnd) phase = 'ended';
     else if (result !== '*' && !atEnd) phase = 'review';
     else if (!atEnd) phase = 'history';
-    else if (!online && mode !== 'playing') phase = 'idle';
+    // A named game (vs computer or online) is never "idle" just because the
+    // mobile board reports a mode string other than 'playing'.
+    else if (!online && mode !== 'playing' && !headersPresent) phase = 'idle';
     const plies = g.getSelectedNode?.()?.ply || ((Number(fen.split(' ')[5]) - 1) * 2 + (turn === 'black' ? 1 : 0));
     if (lastGame !== g || (phase === 'playing' && atEnd && (plies < lastPlies || lastResult !== '*'))) gameEpoch++;
     lastGame = g; lastResult = result;
     if (phase === 'playing' && atEnd) lastPlies = plies;
-    const side = prefs.side === 'white' || prefs.side === 'black' ? prefs.side : playerColor;
+    // Mobile layouts may expose neither the playing-as API nor member links;
+    // the board orientation is the local player's side in a live game.
+    const orientationSide = phase === 'playing' ? (g.getOptions?.().flipped ? 'black' : 'white') : null;
+    const side = prefs.side === 'white' || prefs.side === 'black' ? prefs.side
+      : (playerColor || orientationSide);
     let reason = 'ready';
     if (!prefs.enabled) reason = 'disabled';
     else if (phase === 'ended') reason = 'ended';
