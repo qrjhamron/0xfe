@@ -1,8 +1,8 @@
-# Windows V14 build
+# Windows V15 build
 
 Build on a Windows 10/11 machine with Python 3.12, Git, and Inno Setup.
 
-1. Place compatible CPU binaries at `runtime\lc0.exe` and (if not already present) let `build_windows.ps1` download `runtime\stockfish.exe`. The build also downloads the small DirectML `lc0-gpu.exe` binary; it is selected when a compatible GPU is detected.
+1. Let `build_windows.ps1` download `runtime\stockfish.exe` and the pinned Patricia 5.1 binary (`runtime\patricia.exe`, checksum-verified). No Lc0 binaries/weights and no Maia checkpoint are downloaded or packaged in this Patricia-focused build.
 2. Run PowerShell:
 
 ```powershell
@@ -15,14 +15,8 @@ Chrome/Edge already installed on the machine. Add `-InstallChromium` to cache a
 Playwright Chromium fallback during the build.
 
 The installer is per-user and writes its status/cache under the selected app
-folder. Maia 3 5M is included as an offline CPU sidecar (`maia-worker.exe`), so
-the Maia button is ready immediately after installation and does not need CUDA.
-The extra PyTorch runtime makes the installer larger than the Lc0-only build.
-
-On a machine without a compatible GPU, the CPU-DNNL path is selected
-automatically. Set `LC0_FORCE_CPU=1` to force that path, or use
-`LC0_BACKEND` for backend diagnosis. The GPU package uses DirectML and does
-not require `cudart64_12.dll`.
+folder. Patricia is the packaged engine; Lc0/Maia/Hybrid modes only light up
+in source installs that provide those engines themselves.
 
 If the launcher closes before a browser appears, inspect `runtime\\launcher.log`
 and `browser.log` inside the installed Move Coach folder. The launcher checks

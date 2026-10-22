@@ -22,7 +22,7 @@ def main():
     parser.add_argument('--stockfish', type=Path, help='Use an existing local Stockfish binary')
     parser.add_argument('--install-browser', action='store_true', help='Also download Chromium with Playwright')
     parser.add_argument('--with-maia3', action='store_true', help='Also install Maia-3 5M and its CPU runtime')
-    parser.add_argument('--with-lc0', action='store_true', default=True, help='Install the CPU runtime for fixed Elo levels (default)')
+    parser.add_argument('--with-lc0', action='store_true', default=False, help='Also install the Lc0 CPU runtime for calibrated levels')
     parser.add_argument('--skip-lc0', action='store_false', dest='with_lc0', help='Dependencies only; fixed levels will be unavailable')
     parser.add_argument('--with-patricia', action='store_true', default=True, help='Also install the Patricia engine (default)')
     parser.add_argument('--skip-patricia', action='store_false', dest='with_patricia', help='Do not install Patricia')

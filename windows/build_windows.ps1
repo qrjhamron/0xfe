@@ -26,49 +26,9 @@ if (-not (Test-Path 'runtime\stockfish.exe')) {
     & $VenvPython install.py --skip-lc0
     if ($LASTEXITCODE -ne 0) { throw 'Stockfish installation failed.' }
 }
-if (-not (Test-Path 'runtime\lc0.exe') -or -not (Test-Path 'runtime\dnnl.dll')) {
-    $Lc0Url = 'https://github.com/LeelaChessZero/lc0/releases/download/v0.32.1/lc0-v0.32.1-windows-cpu-dnnl.zip'
-    $Lc0Sha256 = 'B9CFCFBD3DABFFBFD452F6E8E087C22273721BEF48EBA19640B6D92006C142F5'
-    $TempRoot = Join-Path ([IO.Path]::GetTempPath()) 'move-coach-lc0-v15'
-    New-Item -ItemType Directory -Force $TempRoot | Out-Null
-    $Archive = Join-Path $TempRoot 'lc0.zip'
-    Invoke-WebRequest -Uri $Lc0Url -OutFile $Archive
-    if ((Get-FileHash $Archive -Algorithm SHA256).Hash -ne $Lc0Sha256) {
-        throw 'Lc0 Windows archive checksum mismatch.'
-    }
-    $Extract = Join-Path $TempRoot 'extract'
-    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $Extract
-    Expand-Archive -Path $Archive -DestinationPath $Extract
-    foreach ($Name in @('lc0.exe', 'dnnl.dll', 'mimalloc-override.dll', 'mimalloc-redirect.dll')) {
-        $Source = Join-Path $Extract $Name
-        if (-not (Test-Path $Source)) { throw "Lc0 archive is missing $Name." }
-        Copy-Item $Source (Join-Path 'runtime' $Name) -Force
-    }
-}
-if (-not (Test-Path 'runtime\lc0-gpu.exe') -or -not (Test-Path 'runtime\onnxruntime.dll')) {
-    # Optional DirectML build. It uses the Windows graphics runtime and does
-    # not require cudart64_12.dll or a separately installed CUDA toolkit.
-    $GpuUrl = 'https://github.com/LeelaChessZero/lc0/releases/download/v0.32.1/lc0-v0.32.1-windows-onnx-dml.zip'
-    $GpuSha256 = '86AAC242B3A1C6986D02ACC33B8CC64175B11A21B6941C62443C07FA18AC7539'
-    $GpuTemp = Join-Path ([IO.Path]::GetTempPath()) 'move-coach-lc0-gpu-v15'
-    New-Item -ItemType Directory -Force $GpuTemp | Out-Null
-    $GpuArchive = Join-Path $GpuTemp 'lc0-gpu.zip'
-    Invoke-WebRequest -Uri $GpuUrl -OutFile $GpuArchive
-    if ((Get-FileHash $GpuArchive -Algorithm SHA256).Hash -ne $GpuSha256) {
-        throw 'Lc0 GPU archive checksum mismatch.'
-    }
-    $GpuExtract = Join-Path $GpuTemp 'extract'
-    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $GpuExtract
-    Expand-Archive -Path $GpuArchive -DestinationPath $GpuExtract
-    $GpuSource = Join-Path $GpuExtract 'lc0.exe'
-    if (-not (Test-Path $GpuSource)) { throw 'Lc0 GPU archive is missing lc0.exe.' }
-    Copy-Item $GpuSource 'runtime\lc0-gpu.exe' -Force
-    $OnnxSource = Join-Path $GpuExtract 'onnxruntime.dll'
-    if (-not (Test-Path $OnnxSource)) { throw 'Lc0 GPU archive is missing onnxruntime.dll.' }
-    Copy-Item $OnnxSource 'runtime\onnxruntime.dll' -Force
-    Set-Content -Path 'runtime\lc0-gpu-backend.txt' -Value 'onnx-dml' -NoNewline
-}
-& $VenvPython setup_lc0.py --lc0 runtime\lc0.exe
+# Patricia-focused build: no Lc0 binaries/weights and no Maia checkpoint
+# are downloaded or packaged. Lc0/Maia modes remain available only in
+# source installs that provide those engines themselves.
 if (-not (Test-Path 'runtime\patricia.exe')) {
     $PatriciaUrl = 'https://github.com/Adam-Kulju/Patricia/releases/download/5.1/patricia_v2.exe'
     $PatriciaSha256 = '5B3E90932771C218BABF2C12EA55AF8389F7BEF1E5FC6C391D9415F86B4FFF51'
@@ -77,11 +37,6 @@ if (-not (Test-Path 'runtime\patricia.exe')) {
         throw 'Patricia checksum mismatch.'
     }
 }
-if ($LASTEXITCODE -ne 0) { throw 'Lc0 and weight installation failed.' }
-# Maia is packaged as a CPU sidecar. It does not require CUDA and uses the
-# cached Maia-3 5M checkpoint, so the finished installer works offline.
-& $VenvPython setup_maia.py
-if ($LASTEXITCODE -ne 0) { throw 'Maia-3 installation failed.' }
 if ($InstallChromium) {
     & $VenvPython -m playwright install chromium
     if ($LASTEXITCODE -ne 0) { throw 'Chromium installation failed.' }

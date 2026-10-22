@@ -27,7 +27,7 @@
     const elo=levels.includes(wanted)?wanted:
       (available.includes(initial.elo)?initial.elo:available[0]||initial.elo);
     return {
-      elo, engine:(maiaAvailable && ['maia3','hybrid'].includes(value?.engine))||(patriciaAvailable && value?.engine==='patricia')?value.engine:'calibrated', profileVisible:value?.profileVisible!==false,
+      elo, engine:(maiaAvailable && ['maia3','hybrid'].includes(value?.engine))||(patriciaAvailable && value?.engine==='patricia')?value.engine:(patriciaAvailable?'patricia':'calibrated'), profileVisible:value?.profileVisible!==false,
       profileTitle:profileTitles.includes(String(value?.profileTitle||''))?String(value.profileTitle):'GM',
       persona:validPersona(value?.persona)?value.persona:newPersona(),
       autoMove:aliveAutomation && value?.autoMove===true, autoPremove:alivePremove && value?.autoPremove===true,

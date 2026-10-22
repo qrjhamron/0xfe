@@ -164,6 +164,12 @@ def run(args, specs):
     availability=''.join('1' if specs[p.engine].available else '0' for p in PRESETS.values())
     assets_id=hashlib.sha256((panel+overlay).encode()).hexdigest()[:12]
     panel_id=f'{CONFIG_ID}:{availability}:{assets_id}'
+    panel_presets = public_presets(specs)
+    if specs['patricia'].available:
+        # Patricia carries its own strength table: every panel level stays
+        # playable through it even without the calibrated Lc0 weights.
+        for info in panel_presets.values():
+            info['available'] = True
     panel_options = {'defaults': {'elo': args.elo, 'bothSides': args.both_sides,
                                   'appVersion': '15', 'releaseUrl': 'https://github.com/qrjhamron/0xfe/releases'},
                      'runtime': lc0_runtime_status(),
@@ -171,7 +177,7 @@ def run(args, specs):
                                            'available': specs['maia3'].available},
                                  'patricia': {'label': 'Patricia · agresif',
                                               'available': specs['patricia'].available}},
-                     'presets': public_presets(specs), 'configId': panel_id}
+                     'presets': panel_presets, 'configId': panel_id}
     logging.info('Lc0 runtime: %s', panel_options['runtime']['label'])
     # Panel prefs are the source of truth; this file-backed value only covers
     # snapshots from panels that predate the persona preference.

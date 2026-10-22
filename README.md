@@ -9,11 +9,12 @@ Pilihan level dan penampilan disimpan serta disinkronkan antartab.
 ## Paket Windows V15
 
 Versi Windows dibangun sebagai installer per-user `MoveCoach-Setup-v15.exe`.
-Build memakai PyInstaller dan Inno Setup; Lc0 CPU Windows DNNL dan binary GPU
-DirectML opsional diambil dari rilis terpin, diverifikasi checksum, lalu dipasang
-bersama Stockfish dan empat weight. Chrome atau Edge yang sudah ada dipakai oleh
-launcher. Maia 3 5M sekarang ikut terpaket sebagai worker CPU offline, dengan
-checkpoint dicache saat build. Instruksi build ada di
+Build memakai PyInstaller dan Inno Setup dan berfokus pada Patricia: binary
+Patricia 5.1 terpin diunduh dengan verifikasi checksum dan dipasang bersama
+Stockfish kecil. Lc0 (CPU/GPU dan empat weight) serta checkpoint Maia 3 tidak
+lagi diunduh atau terpaket, jadi installer jauh lebih kecil dan cepat dibangun;
+mode Lc0/Maia/Hybrid hanya tersedia pada instalasi sumber yang memasang engine
+itu sendiri. Chrome atau Edge yang sudah ada dipakai oleh launcher. Instruksi build ada di
 [windows/README.md](windows/README.md). Rencana migrasi ke shell native Windows
 ada di [WINDOWS-DESKTOP-UI-PLAN.md](WINDOWS-DESKTOP-UI-PLAN.md).
 
