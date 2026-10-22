@@ -1,4 +1,4 @@
-({fen, move, skill, san, token}) => {
+({fen, move, skill, san, score, token}) => {
   const board = document.querySelector('wc-chess-board, chess-board');
   if (!board?.game || board.game.getFEN() !== fen) return false;
   const coach = window.__chessArrowCoach;
@@ -35,6 +35,6 @@
   svg.dataset.move = move;
   svg.dataset.skill = String(skill);
   svg.dataset.token = token;
-  coach.report({fen, move, skill, san, token});
+  coach.report({fen, move, skill, san, score, token});
   return true;
 }

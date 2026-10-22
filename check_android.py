@@ -58,10 +58,27 @@ print('PASS: Patricia UCI bridge, Skill_Level option, and extracted engine binar
 # Regression guard for the blinking-buttons bug: a connected panel must
 # never be moved between containers, and a dropped panel must be restored
 # by observer in the same frame, not by the next native poll.
-assert 'if (panel.isConnected) return;' in panel_js
+assert "if (panel.isConnected && !panel.classList.contains('coach-floating')) return;" in panel_js
 assert 'panel.parentNode !== sidebar' not in panel_js
 assert 'MutationObserver' in panel_js and 'mountObserver.disconnect()' in panel_js
 print('PASS: panel mounting is stable and self-healing (no blink oscillation)')
+
+# Regression guard for the missing-panel bug: the panel must be created
+# before any board exists and float above the page until it can anchor.
+assert "if (!document.querySelector(boardSelector)?.game) return null" not in panel_js
+assert 'coach-floating' in panel_js and 'document.body?.appendChild(panel)' in panel_js
+assert '__panel__' in (MAIN / 'java/com/movecoach/android/MainActivity.java').read_text()
+print('PASS: panel is created without a board and floats until anchored')
+
+# SAN labels, position score, and render/poll efficiency wiring.
+java_dir = MAIN / 'java/com/movecoach/android'
+assert (java_dir / 'San.java').is_file() and (java_dir / 'ScoreFormat.java').is_file()
+main_java = (java_dir / 'MainActivity.java').read_text()
+assert 'San.toSan' in main_java and 'ScoreFormat.format' in main_java
+assert 'onPause' in main_java and 'stopPolling' in main_java
+assert 'San.toSan' not in panel_js and 'renderedSignature' in panel_js
+assert 'score' in (MAIN / 'assets/overlay.js').read_text()
+print('PASS: SAN labels, White-POV score, and render-on-change are wired')
 
 build_script = (ANDROID / 'build-patricia.sh').read_text()
 assert '67d83d7056801cfab868872d27b99d192488a316' in build_script

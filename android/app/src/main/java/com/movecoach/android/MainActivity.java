@@ -29,12 +29,12 @@ public final class MainActivity extends Activity {
     private static final String POLL_JS =
             "() => { const a = window.__chessArrowCoach;"
                     + " const s = a ? a.poll() : null;"
-                    + " return s ? JSON.stringify(s) : ''; }";
+                    + " return s ? JSON.stringify(s) : (a ? '__panel__' : ''); }";
     private static final String CLEAR_ARROW_JS =
             "() => { document.querySelectorAll('#human-engine-arrow')"
                     + ".forEach(e => e.remove()); return true; }";
     private static final int POLL_MS = 300;
-    private static final int MOVE_TIME_MS = 700;
+    private static final int MOVE_TIME_MS = 600;
 
     private WebView webView;
     private Handler handler;
@@ -74,7 +74,7 @@ public final class MainActivity extends Activity {
         } else {
             webView.restoreState(savedInstanceState);
         }
-        handler.post(this::pollLoop);
+        startPolling();
     }
 
     @Override
@@ -95,15 +95,44 @@ public final class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         destroyed = true;
-        handler.removeCallbacksAndMessages(null);
+        stopPolling();
         executor.shutdownNow();
         engine.close();
         webView.destroy();
         super.onDestroy();
     }
 
+    private boolean polling;
+
+    private void startPolling() {
+        if (polling || destroyed) {
+            return;
+        }
+        polling = true;
+        handler.post(this::pollLoop);
+    }
+
+    private void stopPolling() {
+        polling = false;
+        handler.removeCallbacksAndMessages(null);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        webView.onResume();
+        startPolling();
+    }
+
+    @Override
+    protected void onPause() {
+        stopPolling();
+        webView.onPause();
+        super.onPause();
+    }
+
     private void pollLoop() {
-        if (destroyed) {
+        if (destroyed || !polling) {
             return;
         }
         webView.evaluateJavascript(POLL_JS, value -> handlePoll(value));
@@ -119,6 +148,9 @@ public final class MainActivity extends Activity {
             if (!(decoded instanceof String) || ((String) decoded).isEmpty()) {
                 injectPanel();
                 return;
+            }
+            if (decoded.equals("__panel__")) {
+                return; // Panel is alive; the board is not ready yet.
             }
             JSONObject snapshot = new JSONObject((String) decoded);
             if (!snapshot.optBoolean("eligible")) {
@@ -138,29 +170,34 @@ public final class MainActivity extends Activity {
             }
             pendingKey = key;
             executor.execute(() -> {
-                String move = engine.bestMove(fen, skill, MOVE_TIME_MS);
-                runOnUiThread(() -> showMove(key, fen, token, skill, move));
+                PatriciaEngine.Result result = engine.bestMove(fen, skill, MOVE_TIME_MS);
+                runOnUiThread(() -> showMove(key, fen, token, skill, result));
             });
         } catch (Exception e) {
             injectPanel();
         }
     }
 
-    private void showMove(String key, String fen, String token, int skill, String move) {
+    private void showMove(String key, String fen, String token, int skill,
+                          PatriciaEngine.Result result) {
         if (destroyed || !key.equals(latestKey)) {
             return;
         }
         pendingKey = "";
-        if (move == null) {
+        if (result == null || result.move == null) {
             return;
         }
         try {
+            String san = San.toSan(fen, result.move);
+            boolean whiteToMove = fen.split(" ")[1].equals("w");
             JSONObject payload = new JSONObject();
             payload.put("fen", fen);
-            payload.put("move", move);
+            payload.put("move", result.move);
             payload.put("skill", skill);
             payload.put("elo", SkillLevel.eloFor(skill));
-            payload.put("san", move);
+            payload.put("san", san != null ? san : result.move);
+            payload.put("score", ScoreFormat.format(
+                    result.scoreCp, result.mate, whiteToMove));
             payload.put("token", token);
             String js = "(" + overlayJs + ")(" + payload + ");";
             webView.evaluateJavascript(js, null);

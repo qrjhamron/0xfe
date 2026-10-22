@@ -26,8 +26,21 @@ public final class PatriciaEngine {
         this.binary = binary;
     }
 
-    /** Returns the best move in UCI notation, or null when unavailable. */
-    public synchronized String bestMove(String fen, int skill, int moveTimeMs) {
+    /** One engine answer: the move plus its last reported score. */
+    public static final class Result {
+        public final String move;
+        public final Integer scoreCp;
+        public final Integer mate;
+
+        Result(String move, ScoreFormat.Score score) {
+            this.move = move;
+            this.scoreCp = score != null ? score.cp : null;
+            this.mate = score != null ? score.mate : null;
+        }
+    }
+
+    /** Returns the best move and score, or null when unavailable. */
+    public synchronized Result bestMove(String fen, int skill, int moveTimeMs) {
         try {
             ensureStarted();
             int clamped = SkillLevel.clamp(skill);
@@ -39,11 +52,17 @@ public final class PatriciaEngine {
             send("go movetime " + moveTimeMs);
             long deadline = System.nanoTime()
                     + TimeUnit.MILLISECONDS.toNanos(moveTimeMs + 10000L);
+            ScoreFormat.Score lastScore = null;
             String line;
             while (System.nanoTime() < deadline && (line = reader.readLine()) != null) {
-                if (line.startsWith("bestmove")) {
+                if (line.startsWith("info")) {
+                    ScoreFormat.Score parsed = ScoreFormat.parseInfo(line);
+                    if (parsed.cp != null || parsed.mate != null) {
+                        lastScore = parsed;
+                    }
+                } else if (line.startsWith("bestmove")) {
                     String[] parts = line.split("\\s+");
-                    return parts.length > 1 ? parts[1] : null;
+                    return parts.length > 1 ? new Result(parts[1], lastScore) : null;
                 }
             }
         } catch (IOException | RuntimeException e) {

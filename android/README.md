@@ -16,7 +16,11 @@ Beda dari versi desktop:
 
 Panel menyediakan tombol Skill 1–18, pilihan sisi (Otomatis/Putih/Hitam/
 Kedua sisi), warna dan ketebalan panah, serta tombol Aktif. Preferensi
-disimpan di localStorage WebView.
+disimpan di localStorage WebView. Rekomendasi tampil dalam notasi SAN
+(mis. `Nf3`) berikut skor posisi dari sudut pandang Putih (mis. `+0.8`,
+`M3` untuk mate). Panel muncul melayang sejak aplikasi dibuka dan menempel
+di atas papan begitu papan terdeteksi, jadi tidak bergantung pada layout
+sidebar Chess.com.
 
 ## Build
 
@@ -40,7 +44,8 @@ untuk sideload pengujian).
 
 - Target situs adalah Chess.com versi web di dalam WebView, bukan aplikasi
   Chess.com.
-- Langkah yang ditampilkan di panel adalah notasi UCI dari Patricia
-  (mis. `G1F3`); panah di papan adalah petunjuk utamanya.
+- Skor adalah evaluasi Patricia pada pencarian terakhir (batas 600 ms),
+  ditampilkan dari sudut pandang Putih; kosong berarti engine belum
+  melaporkan skor pada pencarian itu.
 - `python3 check_android.py` di root repo memeriksa kontrak Android ini
   tanpa JDK: tabel skill, ketiadaan jalur input papan, dan wiring build.

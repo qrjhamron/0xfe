@@ -4,7 +4,8 @@
   if (window[GLOBAL]?.version === VERSION) return window[GLOBAL].read();
   window[GLOBAL]?.destroy?.();
   const boardSelector = 'wc-chess-board, chess-board';
-  if (!document.querySelector(boardSelector)?.game) return null;
+  // The panel is created even before any board exists; snapshot() reports
+  // "waiting for board" until Chess.com finishes loading a game.
   const KEY = 'move-coach-android-v1';
   const levels = (Array.isArray(skillLevels) ? skillLevels : [])
     .filter(item => Number.isInteger(item?.skill) && Number.isInteger(item?.elo))
@@ -63,6 +64,8 @@
     #human-engine-panel input[type=color] {width:26px;height:25px;padding:1px;border:1px solid #526b59;border-radius:5px;background:none;cursor:pointer}
     #human-engine-panel input[type=range] {min-width:40px;width:70px;accent-color:#4dd5a5;margin:0}
     #human-engine-panel .coach-footer {font-size:10px;color:#859c8d;margin:10px 0 0}
+    #human-engine-panel.coach-floating {position:fixed;left:8px;right:8px;bottom:8px;width:auto;
+      max-height:46vh;overflow-y:auto;z-index:2147483000;margin:0}
   `;
   document.head.appendChild(style);
   const panel = document.createElement('section');
@@ -116,11 +119,21 @@
     // panel that is still connected (that is what made the buttons blink);
     // only re-insert when the page actually removed it, anchored right
     // before the board so it stays in the always-visible board column.
-    if (panel.isConnected) return;
+    // Without a board yet, float above the page so the panel is always
+    // reachable instead of silently missing.
+    if (panel.isConnected && !panel.classList.contains('coach-floating')) return;
     const board = document.querySelector(boardSelector);
-    if (board?.parentNode) { board.parentNode.insertBefore(panel, board); return; }
+    if (board?.parentNode) {
+      // One-time upgrade from the floating fallback to the board anchor.
+      panel.classList.remove('coach-floating');
+      board.parentNode.insertBefore(panel, board);
+      return;
+    }
+    if (panel.isConnected) return;
     const sidebar = document.querySelector('#board-layout-sidebar');
-    if (sidebar) sidebar.prepend(panel);
+    if (sidebar) { panel.classList.remove('coach-floating'); sidebar.prepend(panel); return; }
+    panel.classList.add('coach-floating');
+    document.body?.appendChild(panel);
   }
   // Re-mount in the same frame when the page drops the panel, instead of
   // waiting for the next native poll to notice it missing.
@@ -179,10 +192,26 @@
     disabled: 'Nonaktif', ended: 'Game selesai', idle: 'Buka game untuk memulai',
     history: 'Mode riwayat · kembali ke posisi live', unknown: 'Menunggu identitas pemain',
     review: 'Mode analisis'};
+  let renderedSignature = '';
   function tick() {
     if (!alive) return null;
     mount();
     const s = snapshot();
+    const status = !s ? 'Menunggu papan…' : (STATUS[s.reason] || s.reason);
+    let moveText = '—', detail = '';
+    if (s && lastMove && lastMove.token === s.token) {
+      moveText = String(lastMove.san || lastMove.move || '—');
+      detail = `Patricia · Skill ${prefs.skill}` + (lastMove.score ? ` · ${lastMove.score}` : '');
+    } else if (s) {
+      detail = s.eligible ? 'Menyiapkan…' : '';
+      if (!s.eligible) document.querySelectorAll('#human-engine-arrow').forEach(e => e.remove());
+    }
+    // Polls run several times a second; touch the DOM only when what the
+    // user would see actually changed.
+    const signature = JSON.stringify([status, moveText, detail, prefs.enabled, prefs.skill,
+      prefs.side, prefs.color, prefs.width, prefs.collapsed, s?.token || '']);
+    if (signature === renderedSignature) return s;
+    renderedSignature = signature;
     panel.querySelector('[aria-label="Aktif"]').checked = prefs.enabled;
     panel.querySelector('.coach-switch span').textContent = prefs.enabled ? 'Aktif' : 'Nonaktif';
     panel.querySelector('[aria-label="Warna pemain"]').value = prefs.side;
@@ -193,19 +222,12 @@
     panel.dataset.collapsed = String(prefs.collapsed);
     panel.querySelector('[data-body]').style.display = prefs.collapsed ? 'none' : '';
     panel.querySelector('[data-action="collapse"]').textContent = prefs.collapsed ? '▸' : '▾';
+    panel.dataset.state = s?.reason || 'noboard';
     text('engine-name', `SKILL ${prefs.skill} · ≈${eloBySkill.get(prefs.skill)}`);
     text('footer', `Patricia Skill Level ${prefs.skill} · estimasi engine ≈${eloBySkill.get(prefs.skill)} · bukan rating resmi`);
-    if (!s) { text('status', 'Menunggu papan…'); return null; }
-    panel.dataset.state = s.reason;
-    text('status', STATUS[s.reason] || s.reason);
-    if (lastMove && lastMove.token === s.token) {
-      text('move', String(lastMove.san || lastMove.move || '—').toUpperCase());
-      text('detail', `Patricia · Skill ${prefs.skill}`);
-    } else {
-      text('move', '—');
-      text('detail', s.eligible ? 'Menyiapkan…' : '');
-      if (!s.eligible) document.querySelectorAll('#human-engine-arrow').forEach(e => e.remove());
-    }
+    text('status', status);
+    text('move', moveText);
+    text('detail', detail);
     return s;
   }
   const api = {
