@@ -83,6 +83,7 @@ print('PASS: SAN labels, White-POV score, and render-on-change are wired')
 build_script = (ANDROID / 'build-patricia.sh').read_text()
 assert '67d83d7056801cfab868872d27b99d192488a316' in build_script
 assert 'aarch64-linux-android26' in build_script and 'libpatricia.so' in build_script
+assert 'x86_64-linux-android26' in build_script and 'x86_64' in build_script
 assert '-static-libstdc++' in build_script
 workflow = (ROOT / '.github/workflows/android.yml').read_text()
 assert 'build-patricia.sh' in workflow and 'assembleDebug' in workflow

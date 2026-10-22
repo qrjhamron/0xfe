@@ -11,7 +11,7 @@ set -eu
 PIN=67d83d7056801cfab868872d27b99d192488a316
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 SRC="$ROOT/.patricia-src"
-OUT="$ROOT/app/src/main/jniLibs/arm64-v8a"
+JNILIBS="$ROOT/app/src/main/jniLibs"
 BIN="$SRC/engine/patricia_aarch64"
 
 if [ ! -d "$SRC/engine" ]; then
@@ -31,11 +31,21 @@ if [ -n "$NDK" ]; then
     fi
     cd "$SRC/engine"
     # API 26 matches the app minSdk. -static-libstdc++ keeps libc++ inside
-    # the executable so nothing else must ship beside it.
-    "$CLANGXX" --target=aarch64-linux-android26 -O3 -std=c++20 -ffast-math \
-        -march=armv8-a -pthread -static-libstdc++ \
-        src/patricia.cpp src/fathom/src/tbprobe.c -o patricia_aarch64
-    "$STRIP" patricia_aarch64
+    # the executable so nothing else must ship beside it. arm64-v8a is for
+    # phones; x86_64 lets the same APK run in PC emulators for testing.
+    build_abi() {
+        "$CLANGXX" --target="$1" -O3 -std=c++20 -ffast-math "$3" \
+            -pthread -static-libstdc++ \
+            src/patricia.cpp src/fathom/src/tbprobe.c -o patricia_bin
+        "$STRIP" patricia_bin
+        mkdir -p "$JNILIBS/$2"
+        cp patricia_bin "$JNILIBS/$2/libpatricia.so"
+        chmod 755 "$JNILIBS/$2/libpatricia.so"
+        echo "Staged $JNILIBS/$2/libpatricia.so"
+    }
+    build_abi aarch64-linux-android26 arm64-v8a -march=armv8-a
+    build_abi x86_64-linux-android26 x86_64 -march=x86-64-v3
+    exit 0
 else
     cd "$SRC/engine"
     make cross-aarch64 CROSS="${CROSS:-aarch64-linux-gnu}"
@@ -44,7 +54,7 @@ else
     fi
 fi
 
-mkdir -p "$OUT"
-cp "$BIN" "$OUT/libpatricia.so"
-chmod 755 "$OUT/libpatricia.so"
-echo "Staged $OUT/libpatricia.so"
+mkdir -p "$JNILIBS/arm64-v8a"
+cp "$BIN" "$JNILIBS/arm64-v8a/libpatricia.so"
+chmod 755 "$JNILIBS/arm64-v8a/libpatricia.so"
+echo "Staged $JNILIBS/arm64-v8a/libpatricia.so"
