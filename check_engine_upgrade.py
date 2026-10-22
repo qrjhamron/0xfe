@@ -1,7 +1,7 @@
 """Checks for bounded MultiPV choice and the small opening book."""
 import chess
 from types import SimpleNamespace
-from arrows import choose_candidate, multipv_for_elo
+from arrows import choose_candidate, engine_for_position, multipv_for_elo
 from engine_runtime import Request
 from opening_book import lookup
 
@@ -16,3 +16,12 @@ result={'move':'e2e4','candidates':[{'move':'e2e4','score_cp':20},{'move':'d2d4'
 move,source=choose_candidate(req,result)
 assert move in {'e2e4','d2d4'} and source.startswith('hybrid-multipv')
 print('PASS: opening book, Elo-bounded MultiPV, and human-like candidate selection')
+specs={'maia3':SimpleNamespace(available=True)}
+preset=SimpleNamespace(engine='badgyal8')
+assert engine_for_position('hybrid',preset,SimpleNamespace(phase='middlegame'),chess.STARTING_FEN,specs)=='maia3'
+assert engine_for_position('hybrid',preset,SimpleNamespace(phase='tactical'),chess.STARTING_FEN,specs)=='badgyal8'
+assert engine_for_position('hybrid',preset,SimpleNamespace(phase='fixed'),'6k1/6R1/5ppp/8/8/8/5PPP/6K1 b - - 0 1',specs)=='badgyal8'
+assert engine_for_position('maia3',preset,SimpleNamespace(phase='middlegame'),chess.STARTING_FEN,specs)=='maia3'
+assert engine_for_position('calibrated',preset,SimpleNamespace(phase='middlegame'),chess.STARTING_FEN,specs)=='badgyal8'
+assert engine_for_position('hybrid',preset,SimpleNamespace(phase='middlegame'),chess.STARTING_FEN,{'maia3':SimpleNamespace(available=False)})=='badgyal8'
+print('PASS: hybrid mode routes quiet positions to Maia and checks to Lc0')

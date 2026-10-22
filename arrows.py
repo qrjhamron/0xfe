@@ -22,7 +22,8 @@ from premove import Premove
 from session_audit import SessionAudit
 from presets import PRESETS, CONFIG_ID, resolve_preset, public_presets
 from opening_book import lookup as opening_lookup
-from adaptive_strength import budget_for_position
+from adaptive_strength import budget_for_position, classify_phase
+from human_style import ensure_persona, is_slip, panic_nodes, stable_int, valid_persona
 from app_paths import ROOT
 
 POLL = """() => {const a=window.__chessArrowCoach;
@@ -38,11 +39,25 @@ def scaled_nodes(nodes, multiplier):
 
 
 def effective_budget(snapshot, preset, node_multiplier=1.0):
-    """Apply the optional phase policy after the calibrated preset/multiplier."""
+    """Apply panic play and the optional phase policy after the preset/multiplier."""
     base = scaled_nodes(preset.nodes, node_multiplier) if node_multiplier != 1 else preset.nodes
+    if snapshot.get('prefs', {}).get('panicPlay', True):
+        clocks = snapshot.get('clocks') or {}
+        base = panic_nodes(base, clocks.get(snapshot.get('turn')))
     budget = budget_for_position(chess.Board(snapshot['fen']), base,
                                  bool(snapshot.get('prefs', {}).get('adaptiveStrength', True)))
     return replace(preset, nodes=budget.nodes), budget
+
+
+def tactical_spot(fen):
+    """True when a human is most likely to slip: checks and captures around."""
+    try:
+        board = chess.Board(fen)
+    except ValueError:
+        return False
+    if board.is_check():
+        return True
+    return any(board.is_capture(move) for move in board.legal_moves)
 
 
 def selected_preset(snapshot, specs):
@@ -51,6 +66,24 @@ def selected_preset(snapshot, specs):
     if snapshot.get('prefs', {}).get('engine') == 'maia3' and specs['maia3'].available:
         return replace(preset, engine='maia3')
     return preset
+
+
+def engine_for_position(requested, preset, phase_budget, fen, specs):
+    """Resolve the main-move engine, including the human hybrid mode.
+
+    'maia3' always uses the human net. 'hybrid' uses Maia on quiet positions
+    and the calibrated Lc0 preset when the side to move is in check, so
+    forcing tactics keep the calibrated strength. Anything else, or a missing
+    Maia install, keeps the calibrated preset engine.
+    """
+    maia_ok = specs['maia3'].available
+    if requested == 'maia3' and maia_ok:
+        return 'maia3'
+    if requested == 'hybrid' and maia_ok:
+        phase = (phase_budget.phase if phase_budget and phase_budget.phase != 'fixed'
+                 else classify_phase(chess.Board(fen)))
+        return preset.engine if phase == 'tactical' else 'maia3'
+    return preset.engine
 
 def choose_candidate(request, result):
     candidates=result.get('candidates') or []
@@ -64,10 +97,16 @@ def choose_candidate(request, result):
     # while high levels stay close to the principal variation.
     window=130 if request.elo<=1600 else 105 if request.elo<=1800 else 80 if request.elo<=2000 else 60 if request.elo<=2200 else 42
     pool=[c for c in scored if c['score_cp']>=top-window]
+    if request.blunders and len(pool)>=2 and tactical_spot(request.fen):
+        # A level-sized blind spot: the same persona always slips the same
+        # way here, but only inside the plausible Elo window.
+        if is_slip(request.persona,request.fen,request.elo):
+            return pool[-1]['move'], f"human-slip-{len(candidates)}"
     temp=95 if request.elo<=1600 else 72 if request.elo<=1800 else 55 if request.elo<=2000 else 40 if request.elo<=2200 else 28
     weights=[math.exp((c['score_cp']-top)/temp) for c in pool]
-    digest=hashlib.blake2s(request.token.encode(),digest_size=2).digest()
-    target=(int.from_bytes(digest,'big')/65536)*sum(weights)
+    # Persona-stable sampling: the same person picks the same candidate from
+    # the same position in every game, instead of reseeding per game token.
+    target=(stable_int(request.persona,request.fen)/65536)*sum(weights)
     for candidate,weight in zip(pool,weights):
         target-=weight
         if target<=0:
@@ -118,12 +157,15 @@ def run(args, specs):
     assets_id=hashlib.sha256((panel+overlay).encode()).hexdigest()[:12]
     panel_id=f'{CONFIG_ID}:{availability}:{assets_id}'
     panel_options = {'defaults': {'elo': args.elo, 'bothSides': args.both_sides,
-                                  'appVersion': '13', 'releaseUrl': 'https://github.com/qrjhamron/0xfe/releases'},
+                                  'appVersion': '14', 'releaseUrl': 'https://github.com/qrjhamron/0xfe/releases'},
                      'runtime': lc0_runtime_status(),
                      'engines': {'maia3': {'label': 'Maia 3 · gaya manusia',
                                            'available': specs['maia3'].available}},
                      'presets': public_presets(specs), 'configId': panel_id}
     logging.info('Lc0 runtime: %s', panel_options['runtime']['label'])
+    # Panel prefs are the source of truth; this file-backed value only covers
+    # snapshots from panels that predate the persona preference.
+    fallback_persona = ensure_persona()
     pool = EnginePool(specs, think=args.think, threads=args.threads, hash_mb=args.hash_mb,
                       cache_size=args.cache_size)
     records = {}
@@ -163,7 +205,7 @@ def run(args, specs):
                         try:
                             response = page.evaluate(POLL)
                             snapshot = response.get('snapshot')
-                            if response.get('version') != 13 or response.get('configId') != panel_id:
+                            if response.get('version') != 14 or response.get('configId') != panel_id:
                                 snapshot = page.evaluate(panel, panel_options)
                             if snapshot:
                                 native_audit=page.evaluate('()=>window.__chessArrowCoach?.audit()')
@@ -176,6 +218,10 @@ def run(args, specs):
                             if preset_for_game and snapshot:
                                 preset_for_game, phase_budget = effective_budget(
                                     snapshot, preset_for_game, args.node_multiplier)
+                            persona = (snapshot.get('prefs') or {}).get('persona') if snapshot else None
+                            if not valid_persona(persona):
+                                persona = fallback_persona
+                            blunders = bool(snapshot and snapshot.get('prefs', {}).get('humanBlunders', True))
                             prepared = planner.update(snapshot, pool, preset_for_game)
                             if snapshot:
                                 page.evaluate('p=>window.__chessArrowCoach?.premoveState(p)',
@@ -200,6 +246,10 @@ def run(args, specs):
                                     logging.info('Native premove queued: %s',len(planner.plan))
                                 snapshot=page.evaluate('()=>window.__chessArrowCoach?.read()')
                             state['automation'].tick(page, snapshot, state.get('render'))
+                            delay_sample = state['automation'].last_delay
+                            if delay_sample and snapshot and delay_sample[0] == snapshot.get('token'):
+                                state['audit'].note_tempo(snapshot['fen'], *delay_sample[1:])
+                                state['automation'].last_delay = None
                             if not snapshot or not snapshot['eligible'] or chess.Board(snapshot['fen']).is_game_over():
                                 pool.cancel(state['owner'])
                                 state.update(pending=None, render=None)
@@ -207,14 +257,18 @@ def run(args, specs):
                             active = True
                             elo = snapshot['prefs']['elo']
                             preset = preset_for_game or resolve_preset(elo, specs)
-                            model = preset.engine
+                            model = engine_for_position(snapshot['prefs'].get('engine'),
+                                                          preset, phase_budget, snapshot['fen'], specs)
                             token = snapshot['token']
                             if state.get('token') != token:
                                 pool.cancel(state['owner'])
                                 state.update(token=token, pending=None, render=state.get('render') if prepared else None, retry_at=0, failures=0)
                             # A tiny book handles only common, non-tactical opening plies.
+                            # Seeded by persona so one player repeats the same
+                            # repertoire in every game.
                             book_move=opening_lookup(chess.Board(snapshot['fen']), snapshot.get('history',()),
-                                                     snapshot.get('prefs',{}).get('openingBook',True))
+                                                     snapshot.get('prefs',{}).get('openingBook',True),
+                                                     seed=persona)
                             if book_move and state.get('book_token')!=token:
                                 board=chess.Board(snapshot['fen'])
                                 state['render']={'fen':snapshot['fen'],'move':book_move,'elo':elo,
@@ -228,17 +282,24 @@ def run(args, specs):
                                 continue
                             if state['pending'] == token or time.monotonic() < state['retry_at']:
                                 continue
-                            # Main moves always use one policy line. MultiPV scores are
-                            # useful for premove branch coverage, but selecting directly
-                            # from them made the human-trained Lc0 policy less stable.
-                            # Keep Stockfish single-PV too; its Elo limiter still applies.
-                            analysis_mode = False
+                            # Human blunders need a candidate pool, so the main search
+                            # runs bounded MultiPV when the toggle is on. Maia has no
+                            # MultiPV option and safely stays single-PV. With the
+                            # toggle off, main moves keep the calibrated single-PV path.
+                            multipv_capable = specs[model].kind == 'nodes' or model == 'stockfish'
+                            analysis_mode = bool(blunders and multipv_capable)
+                            clocks = snapshot.get('clocks') or {}
+                            remaining = clocks.get(snapshot.get('turn'))
+                            panic_active = (bool(snapshot.get('prefs', {}).get('panicPlay', True))
+                                            and isinstance(remaining, (int, float)) and remaining < 30000)
                             request = Request(owner=state['owner'], token=token,
                                               game=snapshot['gameId'], fen=snapshot['fen'], elo=elo,
                                               root_fen=snapshot.get('rootFen', ''),
                                               history=tuple(snapshot.get('history', ())),
                                               nodes=preset.nodes,
-                                              analysis=analysis_mode, multipv=1,
+                                              analysis=analysis_mode,
+                                              multipv=multipv_for_elo(elo) if analysis_mode else 1,
+                                              persona=persona, blunders=blunders, panic=panic_active,
                                               phase=phase_budget.phase if phase_budget else 'fixed',
                                               base_nodes=(scaled_nodes(resolve_preset(elo, specs).nodes,
                                                                        args.node_multiplier)
@@ -291,7 +352,8 @@ def run(args, specs):
                         payload.update({'phase': request.phase,
                                         'nodes_base': request.base_nodes or request.nodes,
                                         'nodes_effective': request.nodes,
-                                        'adaptive_strength': request.phase != 'fixed'})
+                                        'adaptive_strength': request.phase != 'fixed',
+                                        'blunders': request.blunders, 'panic': request.panic})
                         try:
                             if not page.evaluate(overlay, payload):
                                 continue

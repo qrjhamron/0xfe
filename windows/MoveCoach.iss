@@ -1,5 +1,5 @@
 #define AppName "Move Coach"
-#define AppVersion "12.0.0"
+#define AppVersion "14.0.0"
 #define AppPublisher "Move Coach"
 #define AppExeName "MoveCoach.exe"
 
@@ -11,7 +11,7 @@ AppPublisher={#AppPublisher}
 DefaultDirName={localappdata}\MoveCoach
 DefaultGroupName={#AppName}
 OutputDir=Output
-OutputBaseFilename=MoveCoach-Setup-v13
+OutputBaseFilename=MoveCoach-Setup-v14
 Compression=lzma2/ultra64
 SolidCompression=yes
 PrivilegesRequired=lowest

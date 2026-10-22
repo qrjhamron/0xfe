@@ -1,6 +1,9 @@
 """Guarded, opt-in board input; one nonblocking cursor step per daemon poll."""
+import math
 import time
 import chess
+
+from human_style import cursor_bow, jitter_factor, tempo_multiplier, valid_persona
 
 GEOMETRY = """() => {
  const b=document.querySelector('wc-chess-board,chess-board');
@@ -19,14 +22,27 @@ CURSOR = """p=>{
  e.style.left=p.x+'px';e.style.top=p.y+'px';
 }"""
 
+_VALUES = {chess.PAWN: 1, chess.KNIGHT: 3, chess.BISHOP: 3, chess.ROOK: 5, chess.QUEEN: 9}
+
+
+def material_edge(board):
+    """Material balance from the side-to-move point of view, in pawns."""
+    score = 0
+    for piece in board.piece_map().values():
+        value = _VALUES.get(piece.piece_type, 0)
+        score += value if piece.color == board.turn else -value
+    return score
+
 
 class AutoMoves:
     def __init__(self):
         self.job = None
         self.attempted = None
+        self.last_delay = None
 
     def cancel(self, page):
         self.job = None
+        self.last_delay = None
         page.evaluate("()=>document.querySelector('#coach-mouse')?.remove()")
 
     @staticmethod
@@ -34,6 +50,21 @@ class AutoMoves:
         return bool(s and s.get('eligible') and s.get('phase') == 'playing'
                     and s.get('atEnd') and s.get('side') == s.get('turn')
                     and s.get('prefs', {}).get('side') != 'both')
+
+    @staticmethod
+    def rendered_source(rendered, move, token):
+        """Source of the rendered recommendation behind this move, if it matches."""
+        if (rendered or {}).get('token') == token and (rendered or {}).get('move') == move:
+            return (rendered or {}).get('source')
+        return None
+
+    @staticmethod
+    def apply_theory_tempo(delay, reason, source):
+        """Memorized theory is played almost instantly; fixed delays stay manual."""
+        if source == 'opening-book' and reason != 'fixed':
+            reason = 'hafal teori' if reason == 'normal' else f'{reason} · hafal teori'
+            return delay * 0.5, reason
+        return delay, reason
 
     @staticmethod
     def adaptive_delay(s, board):
@@ -45,7 +76,8 @@ class AutoMoves:
         clocks=s.get('clocks') or {}
         remaining=clocks.get(s.get('turn'))
         if prefs.get('timeManagement', True) and isinstance(remaining,(int,float)):
-            if remaining < 8000: factor*=.25; reasons.append('kritik waktu')
+            if remaining < 3000: factor*=.12; reasons.append('waktu sangat kritis')
+            elif remaining < 8000: factor*=.25; reasons.append('kritik waktu')
             elif remaining < 20000: factor*=.4; reasons.append('waktu menipis')
             elif remaining < 60000: factor*=.65; reasons.append('waktu rendah')
             elif remaining < 120000: factor*=.85
@@ -54,6 +86,24 @@ class AutoMoves:
             check=board.is_check(); complexity=min(1.45,1.0 + max(0,len(legal)-24)*.008 + captures*.018 + (0.18 if check else 0))
             factor*=complexity
             if complexity>1.12: reasons.append('posisi taktis')
+            if len(legal)==1:
+                # Humans play forced replies almost instantly.
+                factor*=.5; reasons.append('langkah paksa')
+            edge=material_edge(board)
+            if edge>=4:
+                # Clearly winning players relax and move fast.
+                factor*=.85; reasons.append('unggul materi')
+            elif edge<=-4:
+                # Clearly losing players double-check and slow down.
+                factor*=1.15; reasons.append('bertahan')
+        # Persona tempo fingerprint: one base tempo per player plus natural
+        # variation per persona+position, so the same person waits the same
+        # time on the same position in every game. Snapshots without a
+        # persona keep their exact legacy timing.
+        persona=prefs.get('persona')
+        if valid_persona(persona):
+            factor*=tempo_multiplier(persona)
+            factor*=jitter_factor(persona,board.fen())
         return max(0.0,min(10.0,base*factor)), ', '.join(reasons) or 'normal'
 
     def tick(self, page, s, rendered):
@@ -85,9 +135,13 @@ class AutoMoves:
             if not geometry:
                 return
             delay, delay_reason = self.adaptive_delay(s, board)
+            delay, delay_reason = self.apply_theory_tempo(
+                delay, delay_reason, self.rendered_source(rendered, move, s['token']))
             self.job = dict(key=key, move=move, token=s['token'], geometry=geometry,
                             due=time.monotonic()+delay, step=0,
+                            persona=s.get('prefs',{}).get('persona'),
                             duration=max(.06,min(.6,s['prefs'].get('cursorMs',120)/1000)))
+            self.last_delay = (s['token'], round(delay*1000), delay_reason)
             page.evaluate("r=>window.__chessArrowCoach.automationResult('Menunggu delay · '+r)", delay_reason)
             return
         job = self.job
@@ -109,11 +163,20 @@ class AutoMoves:
         start, end = point(move[:2]), point(move[2:4])
         if step < 6:
             # First segment approaches source; second segment travels to destination.
+            # The travel eases in-out with a slight deterministic bow, like a hand
+            # slowing into the square. Both clicks stay pixel-exact.
             if step < 2:
                 x, y = start
             else:
                 f = (step-1)/4
-                x, y = (start[0]+(end[0]-start[0])*f, start[1]+(end[1]-start[1])*f)
+                eased = f*f*(3-2*f)
+                x, y = (start[0]+(end[0]-start[0])*eased, start[1]+(end[1]-start[1])*eased)
+                dx, dy = end[0]-start[0], end[1]-start[1]
+                length = math.hypot(dx, dy)
+                curve = cursor_bow(job.get('persona'), move[:2], move[2:4])
+                if length > 1 and curve:
+                    bow = math.sin(math.pi*f)*curve/length
+                    x, y = (x-dy*bow, y+dx*bow)
             # Refuse clicks when a dialog or other element covers the board.
             visible = page.evaluate("p=>document.elementFromPoint(p.x,p.y)?.closest('wc-chess-board,chess-board')!=null", {'x': x, 'y': y})
             if not visible:
@@ -124,7 +187,8 @@ class AutoMoves:
             if step in (1, 5):
                 page.mouse.click(x, y)
             job['step'] += 1
-            job['due'] = time.monotonic()+job['duration']/6
+            # Eased pacing with the same total duration and click count.
+            job['due'] = time.monotonic()+job['duration']*(0.8,1.0,1.2,1.2,1.0,0.8)[step]/6
         else:
             if len(move)==5 and not job.get('promotion_done'):
                 color='w' if chess.Board(s['fen']).turn else 'b'

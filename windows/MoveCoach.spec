@@ -1,4 +1,4 @@
-# PyInstaller spec for the Windows V13 installer, including the Maia sidecar.
+# PyInstaller spec for the Windows V14 installer, including the Maia sidecar.
 from pathlib import Path
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 

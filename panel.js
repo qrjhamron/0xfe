@@ -1,5 +1,5 @@
 ({defaults, presets, configId, runtime = {}, engines = {}}) => {
-  const VERSION = 13;
+  const VERSION = 14;
   const GLOBAL = '__chessArrowCoach';
   if (window[GLOBAL]?.version === VERSION && window[GLOBAL]?.configId === configId) return window[GLOBAL].read();
   window[GLOBAL]?.destroy();
@@ -11,6 +11,12 @@
   const levels=Object.keys(choices).map(Number).sort((a,b)=>a-b);
   const maiaAvailable=engines?.maia3?.available===true;
   const profileTitles=['NONE','GM','IM','FM','NM','CM','WGM','WIM'];
+  // One stable player identity per installation. The daemon seeds every
+  // humanization choice from (persona, position), so the same person keeps
+  // the same repertoire and tempo across games until this is reset.
+  const personaNames=['Kuda','Gajah','Benteng','Menteri','Raja','Pion'];
+  const newPersona=()=>personaNames[Math.floor(Math.random()*personaNames.length)]+'-'+(1+Math.floor(Math.random()*99));
+  const validPersona=v=>typeof v==='string'&&/^[A-Za-z]+-\d{1,3}$/.test(v);
   const initial = {enabled:true, elo:defaults.elo||1500, engine:'calibrated', profileVisible:true, profileTitle:'GM', color:'#20c4a0', width:14,
     autoMove:false, autoPremove:false, timeManagement:true, adaptiveDelay:true, adaptiveStrength:true, endgamePremove:true, advancedPremove:true, panelCollapsed:false, premoveLimit:1, delay:1200, cursorMs:400, side:defaults.bothSides ? 'both' : 'auto'};
   const clean = value => {
@@ -20,11 +26,13 @@
     const elo=levels.includes(wanted)?wanted:
       (available.includes(initial.elo)?initial.elo:available[0]||initial.elo);
     return {
-      elo, engine:maiaAvailable && value?.engine==='maia3'?'maia3':'calibrated', profileVisible:value?.profileVisible!==false,
+      elo, engine:maiaAvailable && ['maia3','hybrid'].includes(value?.engine)?value.engine:'calibrated', profileVisible:value?.profileVisible!==false,
       profileTitle:profileTitles.includes(String(value?.profileTitle||''))?String(value.profileTitle):'GM',
+      persona:validPersona(value?.persona)?value.persona:newPersona(),
       autoMove:aliveAutomation && value?.autoMove===true, autoPremove:alivePremove && value?.autoPremove===true,
       timeManagement:value?.timeManagement!==false, adaptiveDelay:value?.adaptiveDelay!==false,
       adaptiveStrength:value?.adaptiveStrength!==false,
+      humanBlunders:value?.humanBlunders!==false, panicPlay:value?.panicPlay!==false,
       endgamePremove:value?.endgamePremove!==false, advancedPremove:value?.advancedPremove!==false, premoveLimit:1,
       panelCollapsed:value?.panelCollapsed===true,
       premoveBreadth:[3,5,8].includes(Number(value?.premoveBreadth))?Number(value.premoveBreadth):5,
@@ -45,7 +53,9 @@
   let listenerGame=null,listenerHandler=null,branchState=null,branchSignature='';
   let gameTitleObserver=null;
   let prefs;
-  try { prefs = clean(JSON.parse(localStorage.getItem(KEY))); } catch { prefs = clean(null); }
+  let hadPersona=false;
+  try { const stored=JSON.parse(localStorage.getItem(KEY)); hadPersona=validPersona(stored?.persona); prefs=clean(stored); } catch { prefs=clean(null); }
+  if(!hadPersona){ try{localStorage.setItem(KEY,JSON.stringify(prefs));}catch{} }
   let revision = 0;
   let alive = true;
   let lastEligibility = '';
@@ -122,7 +132,7 @@
     <div class="coach-levels" role="group" aria-labelledby="coach-elo-label"></div>
     <div class="coach-settings" style="grid-template-columns:1fr">
       <label class="coach-field">Saya bermain<select aria-label="Warna pemain"><option value="auto">Otomatis</option><option value="white">Putih</option><option value="black">Hitam</option><option value="both">Kedua sisi · analisis</option></select></label>
-      <label class="coach-field">Mode mesin<select aria-label="Mode mesin"><option value="calibrated">Lc0 · terkalibrasi</option><option value="maia3" ${maiaAvailable?'':'disabled'}>Maia 3 · gaya manusia${maiaAvailable?'':' (belum terpasang)'}</option></select></label>
+      <label class="coach-field">Mode mesin<select aria-label="Mode mesin"><option value="calibrated">Lc0 · terkalibrasi</option><option value="maia3" ${maiaAvailable?'':'disabled'}>Maia 3 · gaya manusia${maiaAvailable?'':' (belum terpasang)'}</option><option value="hybrid" ${maiaAvailable?'':'disabled'}>Hybrid · Maia tenang + Lc0 taktis${maiaAvailable?'':' (belum terpasang)'}</option></select></label>
       <label class="coach-switch"><input type="checkbox" aria-label="Profil visual">Profil visual</label>
       <label class="coach-field">Gelar visual<select aria-label="Gelar visual"><option>GM</option><option>IM</option><option>FM</option><option>NM</option><option>CM</option><option>WGM</option><option>WIM</option><option>NONE</option></select></label>
     </div>
@@ -132,6 +142,8 @@
     <label class="coach-switch"><input type="checkbox" aria-label="Time management">Manajemen waktu</label>
     <label class="coach-switch"><input type="checkbox" aria-label="Adaptive auto move delay">Adaptive delay</label>
     <label class="coach-switch"><input type="checkbox" aria-label="Adaptive engine strength">Kekuatan adaptif per fase</label>
+    <label class="coach-switch"><input type="checkbox" aria-label="Kesalahan manusiawi">Kesalahan manusiawi</label>
+    <label class="coach-switch"><input type="checkbox" aria-label="Ceroboh saat panik">Ceroboh saat panik</label>
     <label class="coach-switch"><input type="checkbox" aria-label="Endgame premove">Endgame premove</label>
     <label class="coach-switch"><input type="checkbox" aria-label="Advanced premove">Advanced premove</label>
       <label class="coach-switch"><input type="checkbox" aria-label="Auto premove">Premove otomatis</label>
@@ -149,7 +161,9 @@
     <div class="coach-appearance"><label>Warna<input type="color" aria-label="Warna panah"></label>
       <label style="margin-left:auto">Tebal<input type="range" aria-label="Ketebalan panah" min="6" max="26" step="1"><span data-field="width"></span></label></div>
     <p data-field="error" role="alert"></p><p class="coach-footer" data-field="footer">Level latihan · rekomendasi saat giliranmu</p>
-    <div class="coach-update"><button type="button" data-action="update">Cek pembaruan</button><span data-field="update-status">Versi ${defaults.appVersion||'13'}</span></div>
+    <div class="coach-update"><button type="button" data-action="update">Cek pembaruan</button><span data-field="update-status">Versi ${defaults.appVersion||'14'}</span></div>
+    <div class="coach-update"><span data-field="persona"></span><button type="button" data-action="persona-reset" title="Ganti identitas pemain dan mulai gaya baru">Ganti pemain</button></div>
+    <div class="coach-update"><button type="button" data-action="persona-copy" aria-label="Salin ID pemain" title="Salin ID pemain untuk dipakai di mesin lain">Salin</button><button type="button" data-action="persona-paste" aria-label="Tempel ID pemain" title="Tempel ID pemain dari mesin lain">Tempel</button></div>
     <p class="coach-footer" data-field="runtime-status">${runtime.label||'CPU otomatis'} · ${runtime.reason||'Status engine lokal'}</p>
   `;
   const head = panel.firstElementChild;
@@ -189,8 +203,8 @@
       const latest=releases.find(item=>!item.draft&&!item.prerelease&&item.tag_name?.startsWith('move-coach-v'));
       if(!latest) throw new Error('release missing');
       latestReleaseUrl=latest.html_url||defaults.releaseUrl;
-      const match=latest.tag_name.match(/move-coach-v(\d+)/i), version=match?.[1]||defaults.appVersion||'13';
-      if(Number(version)>Number(defaults.appVersion||'13')) {
+      const match=latest.tag_name.match(/move-coach-v(\d+)/i), version=match?.[1]||defaults.appVersion||'14';
+      if(Number(version)>Number(defaults.appVersion||'14')) {
         updateButton.textContent='Buka pembaruan';
         text('update-status',`Versi ${version} tersedia`);
       } else {
@@ -214,6 +228,8 @@
     panel.querySelector('[aria-label="Time management"]').checked=prefs.timeManagement;
     panel.querySelector('[aria-label="Adaptive auto move delay"]').checked=prefs.adaptiveDelay;
     panel.querySelector('[aria-label="Adaptive engine strength"]').checked=prefs.adaptiveStrength;
+    panel.querySelector('[aria-label="Kesalahan manusiawi"]').checked=prefs.humanBlunders;
+    panel.querySelector('[aria-label="Ceroboh saat panik"]').checked=prefs.panicPlay;
     panel.querySelector('[aria-label="Endgame premove"]').checked=prefs.endgamePremove;
     panel.querySelector('[aria-label="Advanced premove"]').checked=prefs.advancedPremove;
     panel.querySelector('[aria-label="Auto premove"]').checked=prefs.autoPremove;
@@ -231,10 +247,11 @@
     text('width',String(prefs.width));
     applyGameTitle();
     panel.querySelector('.coach-switch span').textContent=prefs.enabled ? 'Aktif' : 'Nonaktif';
-    text('engine-name',`LEVEL ${prefs.elo} · ${prefs.engine==='maia3'?'MAIA 3':'GUEST'}`);
+    text('engine-name',`LEVEL ${prefs.elo} · ${prefs.engine==='maia3'?'MAIA 3':prefs.engine==='hybrid'?'HYBRID':'GUEST'}`);
     text('runtime-status',`${runtime.label||'CPU otomatis'} · ${runtime.reason||'Status engine lokal'}`);
     const evidence=choices[prefs.elo];
     text('footer',`${evidence.target_within_interval?'Level latihan':'Target tentatif'} · estimasi lokal ≈${Math.round(evidence.estimate/10)*10}`);
+    text('persona',`Pemain ${prefs.persona} · gaya stabil antar game`);
   }
   function clearArrow() { document.querySelectorAll('#human-engine-arrow').forEach(e=>e.remove()); }
   function applyGameTitle() {
@@ -270,7 +287,7 @@
     if(change.enabled===false||('side' in change&&change.side!==prefs.side))queuedMove=null;
     if(Object.keys(change).some(k=>['enabled','elo','side','autoPremove','premoveBreadth','premovePolicy','adaptiveStrength','endgamePremove','advancedPremove'].includes(k)))cancelNative('settings');
     prefs=clean({...prefs,...change});
-    if (Object.keys(change).some(key=>['enabled','elo','engine','profileVisible','profileTitle','side','autoMove','autoPremove','timeManagement','adaptiveDelay','adaptiveStrength','endgamePremove','advancedPremove','premoveBreadth','premovePolicy','delay','cursorMs'].includes(key))) {
+    if (Object.keys(change).some(key=>['enabled','elo','engine','profileVisible','profileTitle','persona','side','autoMove','autoPremove','timeManagement','adaptiveDelay','adaptiveStrength','humanBlunders','panicPlay','endgamePremove','advancedPremove','premoveBreadth','premovePolicy','delay','cursorMs'].includes(key))) {
       revision++; lastMove=null; backendState=null; clearArrow();
     }
     validationError='';
@@ -296,6 +313,8 @@
   panel.querySelector('[aria-label="Time management"]').addEventListener('change',e=>save({timeManagement:e.target.checked}));
   panel.querySelector('[aria-label="Adaptive auto move delay"]').addEventListener('change',e=>save({adaptiveDelay:e.target.checked}));
   panel.querySelector('[aria-label="Adaptive engine strength"]').addEventListener('change',e=>save({adaptiveStrength:e.target.checked}));
+  panel.querySelector('[aria-label="Kesalahan manusiawi"]').addEventListener('change',e=>save({humanBlunders:e.target.checked}));
+  panel.querySelector('[aria-label="Ceroboh saat panik"]').addEventListener('change',e=>save({panicPlay:e.target.checked}));
   panel.querySelector('[data-action="collapse"]').addEventListener('click',()=>save({panelCollapsed:!prefs.panelCollapsed}));
   panel.querySelector('[aria-label="Endgame premove"]').addEventListener('change',e=>save({endgamePremove:e.target.checked}));
   panel.querySelector('[aria-label="Advanced premove"]').addEventListener('change',e=>save({advancedPremove:e.target.checked}));
@@ -308,6 +327,25 @@
   panel.querySelector('[aria-label="Cabang premove"]').addEventListener('change',e=>save({premoveBreadth:Number(e.target.value)}));
   panel.querySelector('[aria-label="Pola premove"]').addEventListener('change',e=>save({premovePolicy:e.target.value}));
   updateButton.addEventListener('click',checkUpdate);
+  panel.querySelector('[data-action="persona-reset"]').addEventListener('click',()=>{
+    save({persona:newPersona()});
+    text('automation','Identitas pemain diganti · gaya baru dimulai');
+  });
+  panel.querySelector('[data-action="persona-copy"]').addEventListener('click',async()=>{
+    try {
+      await navigator.clipboard.writeText(prefs.persona);
+      text('automation','ID pemain disalin · '+prefs.persona);
+    } catch {
+      prompt('Salin ID pemain:',prefs.persona);
+    }
+  });
+  panel.querySelector('[data-action="persona-paste"]').addEventListener('click',()=>{
+    const id=prompt('Tempel ID pemain (mis. Kuda-7):','');
+    if(id===null||id==='')return;
+    if(!validPersona(id)){ text('automation','ID tidak valid · tetap '+prefs.persona); return; }
+    save({persona:id});
+    text('automation','Pemain diganti · '+id);
+  });
   panel.querySelector('[data-action="site-premove"]').addEventListener('click',()=>{
     const gameSettings=[...document.querySelectorAll('button[aria-label="Settings"]')].find(e=>e.id!=='board-controls-settings');
     (gameSettings||document.querySelector('#board-controls-settings'))?.click();
@@ -521,7 +559,7 @@
     if (event.key!==KEY) return;
     try {
       const next=clean(JSON.parse(event.newValue));
-      if (['enabled','elo','side'].some(key=>next[key]!==prefs[key])) {
+      if (['enabled','elo','side','persona'].some(key=>next[key]!==prefs[key])) {
         revision++;lastMove=null;backendState=null;clearArrow();
       }
       if(['enabled','elo','side','autoPremove','adaptiveStrength','endgamePremove','advancedPremove','premoveBreadth','premovePolicy'].some(k=>prefs[k]!==next[k]))cancelNative('settings');

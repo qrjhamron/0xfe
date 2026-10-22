@@ -19,12 +19,12 @@ def main():
     assert "maia3-install.json" in spec and "collect_submodules('maia3')" in spec
     assert 'COLLECT(' in spec and "name='MoveCoach'" in spec
     iss = (ROOT / 'windows/MoveCoach.iss').read_text()
-    assert 'MoveCoach-Setup-v13' in iss and 'PrivilegesRequired=lowest' in iss
+    assert 'MoveCoach-Setup-v14' in iss and 'PrivilegesRequired=lowest' in iss
     ps = (ROOT / 'windows/build_windows.ps1').read_text()
     assert 'pyinstaller' in ps.lower() and 'iscc.exe' in ps and 'runtime\\lc0.exe' in ps and 'lc0-gpu.exe' in ps and 'onnxruntime.dll' in ps and 'setup_maia.py' in ps
     workflow = (ROOT / '.github/workflows/windows-installer.yml').read_text()
-    assert 'windows-latest' in workflow and 'MoveCoach-Setup-v13.exe' in workflow
-    print('PASS: Windows V13 frozen build and per-user installer inputs are present')
+    assert 'windows-latest' in workflow and 'MoveCoach-Setup-v14.exe' in workflow
+    print('PASS: Windows V14 frozen build and per-user installer inputs are present')
 
 
 if __name__ == '__main__':

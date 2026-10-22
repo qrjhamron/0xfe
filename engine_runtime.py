@@ -198,6 +198,13 @@ class Request:
     # effective node count and position, so these fields do not alter caching.
     phase: str = 'fixed'
     base_nodes: int = 0
+    # Stable player identity for persona-consistent candidate sampling, applied
+    # outside the worker after the engine result arrives.
+    persona: str = ''
+    # Human-error toggles. Both default off so engine checks measure the
+    # calibrated single-PV path unless a test opts in explicitly.
+    blunders: bool = False
+    panic: bool = False
 
     @property
     def cache_key(self):

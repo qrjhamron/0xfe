@@ -1,4 +1,4 @@
-# Windows V13 build
+# Windows V14 build
 
 Build on a Windows 10/11 machine with Python 3.12, Git, and Inno Setup.
 
@@ -10,7 +10,7 @@ Set-ExecutionPolicy -Scope Process Bypass
 .\windows\build_windows.ps1 -Clean
 ```
 
-The final installer is `windows\Output\MoveCoach-Setup-v13.exe`. The app uses
+The final installer is `windows\Output\MoveCoach-Setup-v14.exe`. The app uses
 Chrome/Edge already installed on the machine. Add `-InstallChromium` to cache a
 Playwright Chromium fallback during the build.
 

@@ -6,9 +6,9 @@ from lc0_config import WEIGHTS
 ROOT = Path(__file__).resolve().parent
 SOURCES = ['README.md', '.gitignore', 'requirements.txt', 'install.py', 'run.py',
            'arrows.py', 'adaptive_strength.py', 'app_paths.py', 'auto_moves.py', 'premove.py', 'session_audit.py', 'engine_runtime.py', 'panel.js', 'overlay.js',
-           'presets.py', 'calibration-profiles.json', 'maia_config.py', 'setup_maia.py', 'lc0_config.py', 'lc0-checksums.json',
+           'presets.py', 'calibration-profiles.json', 'maia_config.py', 'setup_maia.py', 'lc0_config.py', 'lc0-checksums.json', 'human_style.py',
            'setup_lc0.py', 'check_engines.py', 'check_browser.py', 'check_lc0.py', 'check_auto_moves.py', 'check_premove.py',
-           'check_premove_ui.py', 'check_premove_engine.py', 'check_native_board.py', 'check_time_management.py', 'check_engine_upgrade.py', 'check_adaptive_strength.py', 'check_windows_packaging.py', 'opening_book.py', 'package.py',
+           'check_premove_ui.py', 'check_premove_engine.py', 'check_native_board.py', 'check_time_management.py', 'check_engine_upgrade.py', 'check_adaptive_strength.py', 'check_windows_packaging.py', 'check_humanize.py', 'check_consistency.py', 'check_determinism.py', 'check_humanlikeness.py', 'opening_book.py', 'package.py',
            'windows/MoveCoach.spec', 'windows/MoveCoach.iss', 'windows/build_windows.ps1', 'windows/build_windows.bat', 'windows/README.md', '.github/workflows/windows-installer.yml']
 
 def main():
