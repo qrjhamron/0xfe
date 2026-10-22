@@ -1,5 +1,5 @@
 ({defaults, presets, configId, runtime = {}, engines = {}}) => {
-  const VERSION = 16;
+  const VERSION = 17;
   const GLOBAL = '__chessArrowCoach';
   if (window[GLOBAL]?.version === VERSION && window[GLOBAL]?.configId === configId) return window[GLOBAL].read();
   window[GLOBAL]?.destroy();
@@ -26,7 +26,7 @@
     const elo=levels.includes(wanted)?wanted:
       (available.includes(initial.elo)?initial.elo:available[0]||initial.elo);
     return {
-      elo, engine:'patricia', profileVisible:value?.profileVisible!==false,
+      elo, engine:'patricia', style:['solid','balanced','aggressive','wild','original'].includes(value?.style)?value.style:'balanced', profileVisible:value?.profileVisible!==false,
       profileTitle:profileTitles.includes(String(value?.profileTitle||''))?String(value.profileTitle):'GM',
       persona:validPersona(value?.persona)?value.persona:newPersona(),
       autoMove:aliveAutomation && value?.autoMove===true, autoPremove:alivePremove && value?.autoPremove===true,
@@ -131,6 +131,7 @@
     <div class="coach-field" id="coach-elo-label">Pilih level latihan</div>
     <div class="coach-levels" role="group" aria-labelledby="coach-elo-label"></div>
     <div class="coach-settings" style="grid-template-columns:1fr">
+      <label class="coach-field">Gaya Patricia<select aria-label="Gaya Patricia"><option value="solid">Solid · selalu terbaik</option><option value="balanced">Seimbang · manusiawi</option><option value="aggressive">Agresif · menyerang</option><option value="wild">Liar · berani beda</option><option value="original">Asli · tanpa tuning</option></select></label>
       <label class="coach-field">Saya bermain<select aria-label="Warna pemain"><option value="auto">Otomatis</option><option value="white">Putih</option><option value="black">Hitam</option><option value="both">Kedua sisi · analisis</option></select></label>
       <label class="coach-switch"><input type="checkbox" aria-label="Profil visual">Profil visual</label>
       <label class="coach-field">Gelar visual<select aria-label="Gelar visual"><option>GM</option><option>IM</option><option>FM</option><option>NM</option><option>CM</option><option>WGM</option><option>WIM</option><option>NONE</option></select></label>
@@ -160,7 +161,7 @@
     <div class="coach-appearance"><label>Warna<input type="color" aria-label="Warna panah"></label>
       <label style="margin-left:auto">Tebal<input type="range" aria-label="Ketebalan panah" min="6" max="26" step="1"><span data-field="width"></span></label></div>
     <p data-field="error" role="alert"></p><p class="coach-footer" data-field="footer">Level latihan · rekomendasi saat giliranmu</p>
-    <div class="coach-update"><button type="button" data-action="update">Cek pembaruan</button><span data-field="update-status">Versi ${defaults.appVersion||'15'}</span></div>
+    <div class="coach-update"><button type="button" data-action="update">Cek pembaruan</button><span data-field="update-status">Versi ${defaults.appVersion||'17'}</span></div>
     <div class="coach-update"><span data-field="persona"></span><button type="button" data-action="persona-reset" title="Ganti identitas pemain dan mulai gaya baru">Ganti pemain</button></div>
     <div class="coach-update"><button type="button" data-action="persona-copy" aria-label="Salin ID pemain" title="Salin ID pemain untuk dipakai di mesin lain">Salin</button><button type="button" data-action="persona-paste" aria-label="Tempel ID pemain" title="Tempel ID pemain dari mesin lain">Tempel</button></div>
     <p class="coach-footer" data-field="runtime-status">${runtime.label||'CPU otomatis'} · ${runtime.reason||'Status engine lokal'}</p>
@@ -172,7 +173,8 @@
   panel.append(body);
   const input = {
     enabled:panel.querySelector('[aria-label="Panah aktif"]'),
-    side:panel.querySelector('[aria-label="Warna pemain"]'), color:panel.querySelector('[aria-label="Warna panah"]'),
+    side:panel.querySelector('[aria-label="Warna pemain"]'), style:panel.querySelector('[aria-label="Gaya Patricia"]'),
+    color:panel.querySelector('[aria-label="Warna panah"]'),
     width:panel.querySelector('[aria-label="Ketebalan panah"]')
   };
   const buttons=new Map();
@@ -202,8 +204,8 @@
       const latest=releases.find(item=>!item.draft&&!item.prerelease&&item.tag_name?.startsWith('move-coach-v'));
       if(!latest) throw new Error('release missing');
       latestReleaseUrl=latest.html_url||defaults.releaseUrl;
-      const match=latest.tag_name.match(/move-coach-v(\d+)/i), version=match?.[1]||defaults.appVersion||'15';
-      if(Number(version)>Number(defaults.appVersion||'15')) {
+      const match=latest.tag_name.match(/move-coach-v(\d+)/i), version=match?.[1]||defaults.appVersion||'17';
+      if(Number(version)>Number(defaults.appVersion||'17')) {
         updateButton.textContent='Buka pembaruan';
         text('update-status',`Versi ${version} tersedia`);
       } else {
@@ -234,7 +236,7 @@
     panel.querySelector('[aria-label="Durasi kursor"]').value=String(prefs.cursorMs);
     panel.querySelector('[aria-label="Cabang premove"]').value=String(prefs.premoveBreadth);
     panel.querySelector('[aria-label="Pola premove"]').value=prefs.premovePolicy;
-    input.enabled.checked=prefs.enabled;input.side.value=prefs.side;
+    input.enabled.checked=prefs.enabled;input.side.value=prefs.side;input.style.value=prefs.style;
     input.color.value=prefs.color; input.width.value=String(prefs.width);
     body.hidden=prefs.panelCollapsed;
     panel.dataset.collapsed=String(prefs.panelCollapsed);
@@ -294,6 +296,7 @@
   }
   input.enabled.addEventListener('change',()=>save({enabled:input.enabled.checked}));
   input.side.addEventListener('change',()=>save({side:input.side.value}));
+  input.style.addEventListener('change',()=>save({style:input.style.value}));
   panel.querySelector('[aria-label="Profil visual"]').addEventListener('change',e=>save({profileVisible:e.target.checked}));
   panel.querySelector('[aria-label="Gelar visual"]').addEventListener('change',e=>save({profileTitle:e.target.value}));
   input.color.addEventListener('input',()=>save({color:input.color.value}));
@@ -558,7 +561,7 @@
     if (event.key!==KEY) return;
     try {
       const next=clean(JSON.parse(event.newValue));
-      if (['enabled','elo','side','persona'].some(key=>next[key]!==prefs[key])) {
+      if (['enabled','elo','side','persona','style'].some(key=>next[key]!==prefs[key])) {
         revision++;lastMove=null;backendState=null;clearArrow();
       }
       if(['enabled','elo','side','autoPremove','adaptiveStrength','endgamePremove','advancedPremove','premoveBreadth','premovePolicy'].some(k=>prefs[k]!==next[k]))cancelNative('settings');

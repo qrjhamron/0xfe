@@ -86,6 +86,7 @@ class Request:
     blunders: bool = False
     panic: bool = False
     think_ms: int = 0
+    style: str = 'balanced'
 
     @property
     def cache_key(self):

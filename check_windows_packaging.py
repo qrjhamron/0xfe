@@ -22,15 +22,15 @@ def main():
                  'maia3-install.json', 'lc0-weights'):
         assert gone not in spec, f'heavy engine input still packaged: {gone}'
     iss = (ROOT / 'windows/MoveCoach.iss').read_text()
-    assert 'MoveCoach-Setup-v16' in iss and 'PrivilegesRequired=lowest' in iss
+    assert 'MoveCoach-Setup-v17' in iss and 'PrivilegesRequired=lowest' in iss
     ps = (ROOT / 'windows/build_windows.ps1').read_text()
     assert 'pyinstaller' in ps.lower() and 'iscc.exe' in ps and 'patricia_v2.exe' in ps
     for gone in ('lc0-v0.32.1', 'setup_lc0.py', 'setup_maia.py'):
         assert gone not in ps, f'heavy engine download still in build: {gone}'
     workflow = (ROOT / '.github/workflows/windows-installer.yml').read_text()
-    assert 'windows-latest' in workflow and 'MoveCoach-Setup-v16.exe' in workflow
+    assert 'windows-latest' in workflow and 'MoveCoach-Setup-v17.exe' in workflow
     assert 'refs/tags/move-coach-v' in workflow and 'action-gh-release' in workflow
-    print('PASS: Windows V16 Patricia-only installer inputs are present and lean')
+    print('PASS: Windows V17 Patricia-only installer inputs are present and lean')
 
 
 if __name__ == '__main__':

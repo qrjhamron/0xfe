@@ -13,6 +13,7 @@ import time
 from urllib.parse import urlsplit
 import uuid
 import math
+import random
 
 import chess
 from playwright.sync_api import sync_playwright, Error as BrowserError
@@ -76,6 +77,78 @@ def scaled_think_ms(base_ms, multiplier=1.0, remaining_ms=None, panic=True):
     if panic:
         ms = ms * panic_nodes(100, remaining_ms) / 100
     return max(50, min(4000, round(ms)))
+
+
+STYLES = ('solid', 'balanced', 'aggressive', 'wild', 'original')
+_PIECE_VALUES = {chess.PAWN: 1, chess.KNIGHT: 3, chess.BISHOP: 3,
+                 chess.ROOK: 5, chess.QUEEN: 9, chess.KING: 0}
+
+
+def _attack_value(board, uci):
+    """How violent a candidate is: mate > check > capture > promotion."""
+    try:
+        move = chess.Move.from_uci(uci)
+    except (ValueError, IndexError):
+        return -1
+    if move not in board.legal_moves:
+        return -1
+    value = 0
+    if board.is_capture(move):
+        victim = board.piece_at(move.to_square)
+        value += 3 + (_PIECE_VALUES.get(victim.piece_type, 1) if victim else 1)
+    if move.promotion:
+        value += 2
+    board.push(move)
+    if board.is_checkmate():
+        value += 100
+    elif board.is_check():
+        value += 4
+    board.pop()
+    return value
+
+
+def _elo_window(elo):
+    return 130 if elo <= 1600 else 105 if elo <= 1800 else 80 if elo <= 2000 else 60 if elo <= 2200 else 42
+
+
+def choose_styled(request, result):
+    """Apply the Patricia style to one engine result.
+
+    solid/original always take Patricia's top move (original additionally
+    means zero candidate tuning of any kind). balanced keeps the existing
+    human-like sampling. aggressive prefers the most violent candidate in
+    the Elo window; wild flattens the sampling and sometimes drops to a
+    weaker candidate on purpose.
+    """
+    top_move = result.get('move')
+    candidates = [c for c in (result.get('candidates') or [])
+                  if c.get('move') and isinstance(c.get('score_cp'), (int, float))]
+    style = request.style if request.style in STYLES else 'balanced'
+    if style in ('solid', 'original') or not candidates:
+        return top_move, f'patricia-{style}'
+    if style == 'aggressive':
+        board = chess.Board(request.fen)
+        window = _elo_window(request.elo)
+        best_score = max(c['score_cp'] for c in candidates)
+        pool = [c for c in candidates if c['score_cp'] >= best_score - window]
+        ranked = sorted(pool, key=lambda c: (-_attack_value(board, c['move']),
+                                             -c['score_cp'], c['move']))
+        if ranked and _attack_value(board, ranked[0]['move']) > 0:
+            return ranked[0]['move'], 'patricia-aggressive'
+        return top_move, 'patricia-aggressive'
+    if style == 'wild':
+        window = _elo_window(request.elo) * 2
+        best_score = max(c['score_cp'] for c in candidates)
+        pool = [c for c in candidates if c['score_cp'] >= best_score - window] or candidates
+        rng = random.Random(stable_int(request.persona, request.fen, 'wild'))
+        if len(pool) > 1 and rng.random() < .35:
+            return rng.choice(pool[1:])['move'], 'patricia-wild'
+        temperature = 90 + max(0, 2000 - request.elo) * .03
+        weights = [math.exp((c['score_cp'] - best_score) / temperature) for c in pool]
+        return rng.choices(pool, weights=weights, k=1)[0]['move'], 'patricia-wild'
+    if request.blunders:
+        return choose_candidate(request, result)
+    return top_move, 'patricia'
 
 
 def choose_candidate(request, result):
@@ -150,7 +223,7 @@ def run(args, specs):
     assets_id=hashlib.sha256((panel+overlay).encode()).hexdigest()[:12]
     panel_id=f'{CONFIG_ID}:{availability}:{assets_id}'
     panel_options = {'defaults': {'elo': args.elo, 'bothSides': args.both_sides,
-                                  'appVersion': '16', 'releaseUrl': 'https://github.com/qrjhamron/0xfe/releases'},
+                                  'appVersion': '17', 'releaseUrl': 'https://github.com/qrjhamron/0xfe/releases'},
                      'runtime': engine_runtime_status(),
                      'engines': {'patricia': {'label': 'Patricia · agresif',
                                               'available': specs['patricia'].available}},
@@ -198,7 +271,7 @@ def run(args, specs):
                         try:
                             response = page.evaluate(POLL)
                             snapshot = response.get('snapshot')
-                            if response.get('version') != 16 or response.get('configId') != panel_id:
+                            if response.get('version') != 17 or response.get('configId') != panel_id:
                                 snapshot = page.evaluate(panel, panel_options)
                             if snapshot:
                                 native_audit=page.evaluate('()=>window.__chessArrowCoach?.audit()')
@@ -299,6 +372,9 @@ def run(args, specs):
                                               multipv=max(3, multipv_for_elo(elo)),
                                               think_ms=think_ms,
                                               persona=persona, blunders=blunders, panic=panic_active,
+                                              style=(snapshot.get('prefs', {}).get('style')
+                                                     if snapshot.get('prefs', {}).get('style') in STYLES
+                                                     else 'balanced'),
                                               phase=phase_budget.phase if phase_budget else 'fixed',
                                               base_nodes=(scaled_nodes(PRESETS[elo].nodes,
                                                                        args.node_multiplier)
@@ -335,10 +411,7 @@ def run(args, specs):
                             except BrowserError:
                                 pass
                             continue
-                        if request.blunders:
-                            chosen, source = choose_candidate(request, result)
-                        else:
-                            chosen, source = result.get('move'), 'patricia'
+                        chosen, source = choose_styled(request, result)
                         if not chosen:
                             continue
                         move = chess.Move.from_uci(chosen)

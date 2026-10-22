@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import chess
 
-from arrows import engine_for_position, scaled_think_ms, selected_preset
+from arrows import STYLES, choose_styled, engine_for_position, scaled_think_ms, selected_preset
 from engine_runtime import EnginePool, Request, engine_specs, patricia_skill_for_elo
 from presets import Preset
 
@@ -75,5 +75,35 @@ assert scaled_think_ms(400, 1.0, 20000) == 200
 assert scaled_think_ms(400, 1.0, None) == 400
 assert scaled_think_ms(5000, 1.25) == 4000 and scaled_think_ms(10, 1.0) == 50
 print('PASS: Patricia think time scales with phase and panic, clamped 50-4000 ms')
+
+# Five styles: two take the top move, aggressive takes the violent one,
+# wild deterministically strays, balanced keeps the human sampling.
+assert STYLES == ('solid', 'balanced', 'aggressive', 'wild', 'original')
+assert Request('o', 't', 'g', chess.STARTING_FEN, 1500).style == 'balanced'
+scholar = 'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 4'
+pool_result = {'move': 'c4d3', 'candidates': [
+    {'move': 'c4d3', 'score_cp': 80}, {'move': 'h5f7', 'score_cp': 40},
+    {'move': 'd2d3', 'score_cp': -10}]}
+def styled(style, **kw):
+    req = Request('o', 't', 'g', scholar, 1500, persona='Pion-7', style=style, **kw)
+    return choose_styled(req, pool_result)
+assert styled('solid') == ('c4d3', 'patricia-solid')
+assert styled('original', blunders=True) == ('c4d3', 'patricia-original')
+assert styled('aggressive') == ('h5f7', 'patricia-aggressive')
+assert styled('balanced', blunders=False) == ('c4d3', 'patricia')
+assert styled('balanced', blunders=True)[0] in {'c4d3', 'h5f7', 'd2d3'}
+wild_seen = set()
+for n in range(1, 41):
+    req = Request('o', 't', 'g', scholar, 1500, persona=f'Pion-{n}', style='wild')
+    move, source = choose_styled(req, pool_result)
+    assert isinstance(move, str) and source == 'patricia-wild'
+    assert choose_styled(req, pool_result) == (move, source), 'wild must repeat per persona'
+    wild_seen.add(move)
+assert len(wild_seen) > 1, 'wild never strays from the top move'
+panel_text = (ROOT / 'panel.js').read_text()
+assert 'Gaya Patricia' in panel_text
+for style in STYLES:
+    assert f'value="{style}"' in panel_text, style
+print('PASS: five Patricia styles choose as designed and repeat per persona')
 
 print('ALL PATRICIA CHECKS PASSED')
