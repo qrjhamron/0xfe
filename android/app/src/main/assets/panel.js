@@ -112,11 +112,20 @@
   panel.querySelector('[aria-label="Ketebalan panah"]').addEventListener('input', e => save({width: Number(e.target.value)}));
   panel.querySelector('[data-action="collapse"]').addEventListener('click', () => save({collapsed: !prefs.collapsed}));
   function mount() {
-    const sidebar = document.querySelector('#board-layout-sidebar');
-    if (sidebar && panel.parentNode !== sidebar) { sidebar.prepend(panel); return; }
+    // Chess.com re-renders its layout and drops foreign nodes. Never move a
+    // panel that is still connected (that is what made the buttons blink);
+    // only re-insert when the page actually removed it, anchored right
+    // before the board so it stays in the always-visible board column.
+    if (panel.isConnected) return;
     const board = document.querySelector(boardSelector);
-    if (board?.parentNode && panel.parentNode !== board.parentNode) board.parentNode.insertBefore(panel, board);
+    if (board?.parentNode) { board.parentNode.insertBefore(panel, board); return; }
+    const sidebar = document.querySelector('#board-layout-sidebar');
+    if (sidebar) sidebar.prepend(panel);
   }
+  // Re-mount in the same frame when the page drops the panel, instead of
+  // waiting for the next native poll to notice it missing.
+  const mountObserver = new MutationObserver(() => { if (alive && !panel.isConnected) mount(); });
+  mountObserver.observe(document.documentElement, {childList: true, subtree: true});
   function fromAPI(value) {
     if ([1, 'white', 'w'].includes(value)) return 'white';
     if ([2, 'black', 'b'].includes(value)) return 'black';
@@ -212,6 +221,7 @@
     },
     destroy() {
       alive = false;
+      mountObserver.disconnect();
       document.querySelectorAll('#human-engine-arrow').forEach(e => e.remove());
       panel.remove();
       style.remove();

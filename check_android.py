@@ -55,6 +55,14 @@ panel_js = (MAIN / 'assets/panel.js').read_text()
 assert 'skillLevels' in panel_js and 'prefs.skill' in (MAIN / 'assets/overlay.js').read_text()
 print('PASS: Patricia UCI bridge, Skill_Level option, and extracted engine binary are wired')
 
+# Regression guard for the blinking-buttons bug: a connected panel must
+# never be moved between containers, and a dropped panel must be restored
+# by observer in the same frame, not by the next native poll.
+assert 'if (panel.isConnected) return;' in panel_js
+assert 'panel.parentNode !== sidebar' not in panel_js
+assert 'MutationObserver' in panel_js and 'mountObserver.disconnect()' in panel_js
+print('PASS: panel mounting is stable and self-healing (no blink oscillation)')
+
 build_script = (ANDROID / 'build-patricia.sh').read_text()
 assert '67d83d7056801cfab868872d27b99d192488a316' in build_script
 assert 'cross-aarch64' in build_script and 'libpatricia.so' in build_script
