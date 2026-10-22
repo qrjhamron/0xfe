@@ -1,4 +1,4 @@
-# PyInstaller spec for the Windows V14 installer, including the Maia sidecar.
+# PyInstaller spec for the Windows V15 installer, including the Maia sidecar.
 from pathlib import Path
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
@@ -22,6 +22,7 @@ required(RUNTIME / 'dnnl.dll')
 required(RUNTIME / 'mimalloc-override.dll')
 required(RUNTIME / 'mimalloc-redirect.dll')
 required(RUNTIME / 'lc0-install.json')
+required(RUNTIME / 'patricia.exe')
 required(RUNTIME / 'maia3-install.json')
 for weight in ('meangirl-7.pb.gz', 'evilgyal-6.pb.gz', 'goodgyal-5.pb.gz', 'badgyal-8.pb.gz'):
     required(RUNTIME / 'lc0-weights' / weight)
@@ -47,6 +48,7 @@ for cache_file in MAIA_CACHE.rglob('*'):
         datas.append((str(cache_file), str(Path('runtime/maia3-cache') / cache_file.relative_to(MAIA_CACHE).parent)))
 binaries = [
     (str(RUNTIME / 'stockfish.exe'), 'runtime'),
+    (str(RUNTIME / 'patricia.exe'), 'runtime'),
     (str(RUNTIME / 'lc0.exe'), 'runtime'),
     (str(RUNTIME / 'lc0-gpu.exe'), 'runtime'),
     (str(RUNTIME / 'onnxruntime.dll'), 'runtime'),

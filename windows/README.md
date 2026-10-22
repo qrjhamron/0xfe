@@ -10,7 +10,7 @@ Set-ExecutionPolicy -Scope Process Bypass
 .\windows\build_windows.ps1 -Clean
 ```
 
-The final installer is `windows\Output\MoveCoach-Setup-v14.exe`. The app uses
+The final installer is `windows\Output\MoveCoach-Setup-v15.exe`. The app uses
 Chrome/Edge already installed on the machine. Add `-InstallChromium` to cache a
 Playwright Chromium fallback during the build.
 

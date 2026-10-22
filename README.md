@@ -1,4 +1,4 @@
-# Move Coach V14 — satu persona stabil, premove tunggal berulang, cabang 3/5/8
+# Move Coach V15 — Patricia bergabung, satu persona stabil, premove tunggal berulang
 
 Tombol aktif saat ini: **1500, 1600, 1700, 1800, 1900, 2000**. Tombol
 2100–2300 dinonaktifkan sampai ada kalibrasi terpisah. Pilih satu tombol;
@@ -6,9 +6,9 @@ konfigurasi level dipilih otomatis di backend. Level awal 1500. Panel tidak
 menampilkan nama model, jumlah node, penggeser Elo atau input Elo bebas.
 Pilihan level dan penampilan disimpan serta disinkronkan antartab.
 
-## Paket Windows V14
+## Paket Windows V15
 
-Versi Windows dibangun sebagai installer per-user `MoveCoach-Setup-v14.exe`.
+Versi Windows dibangun sebagai installer per-user `MoveCoach-Setup-v15.exe`.
 Build memakai PyInstaller dan Inno Setup; Lc0 CPU Windows DNNL dan binary GPU
 DirectML opsional diambil dari rilis terpin, diverifikasi checksum, lalu dipasang
 bersama Stockfish dan empat weight. Chrome atau Edge yang sudah ada dipakai oleh
@@ -45,7 +45,7 @@ setelah dipilih dari data kalibrasi.
 - **Warna / Tebal**: atur penampilan panah.
 - **Cek pembaruan**: periksa rilis Windows terbaru dari GitHub tanpa mencari link manual.
 - **Kekuatan adaptif per fase**: sesuaikan budget secara konservatif untuk opening, middlegame, endgame, dan posisi taktis. Matikan toggle untuk memakai budget kalibrasi tetap.
-- **Mode mesin**: pilih Lc0 terkalibrasi, Maia 3 gaya manusia, atau Hybrid jika worker Maia tersedia. Hybrid memakai Maia pada posisi tenang dan Lc0 terkalibrasi saat sedang terkena cek. Level tetap membatasi rentang latihan; Maia berjalan offline di CPU.
+- **Mode mesin**: pilih Lc0 terkalibrasi, Maia 3 gaya manusia, Hybrid jika worker Maia tersedia, atau Patricia yang agresif jika binary-nya terpasang. Hybrid memakai Maia pada posisi tenang dan Lc0 terkalibrasi saat sedang terkena cek. Patricia memakai `Skill_Level` bawaannya: tombol 1500–2000 memetakan persis ke Skill 7–12 pada tabel Patricia (estimasi engine, bukan rating terverifikasi), dan tetap jalan walau weight Lc0 belum terpasang. Maia berjalan offline di CPU.
 - **Gelar profil game**: badge gelar visual ditempel di samping nama pemain pada kartu game Chess.com. Avatar dan kartu tetap milik halaman Chess.com; badge hanya dekorasi lokal.
 - **Pemain**: identitas stabil per instalasi (mis. Kuda-7). Satu pemain mengulang repertoar, tempo, dan kebiasaan kursor yang sama di setiap game; tombol **Ganti pemain** memulai identitas dan gaya baru.
 
@@ -113,11 +113,11 @@ baru tidak menjamin PGN identik. `python3 package.py` membuat ZIP melalui
 allowlist, tanpa cache, log, sesi browser atau kredensial.
 
 
-## Kontrol gerakan otomatis (V14)
+## Kontrol gerakan otomatis (V15)
 
 Engine memakai **incremental analysis**: worker mempertahankan identitas game dan hash UCI antar giliran serta menghitung cache hit incremental secara terpisah. Opening book kecil menangani beberapa posisi pembukaan umum dalam delapan ply pertama; satu persona selalu mengulang repertoar yang sama di setiap game, seperti satu pemain manusia dengan pembukaan andalan. Posisi yang sama pada level yang sama selalu menghasilkan langkah yang sama, baik di game pertama maupun kesepuluh. Langkah utama memakai policy `play()` single-PV Lc0 pada node aktual preset; faktor dapat diatur melalui `--node-multiplier`. MultiPV tidak dipakai untuk memilih langkah utama. Planner premove masih memakai MultiPV terbatas untuk membaca beberapa cabang lawan, lalu memeriksa legalitas dan risiko sebelum mengantrekan satu langkah.
 
-**Kekuatan adaptif per fase** aktif dari panel V14. Budget preset menjadi baseline middlegame; posisi opening yang tenang memakai sekitar 75%, endgame queenless bermaterial rendah sekitar 115%, dan posisi sedang check sekitar 125%. Budget selalu dibulatkan dan dibatasi 1–256 node. Model, tombol Elo, dan limiter tetap sama; toggle dapat dimatikan untuk kembali ke budget kalibrasi tetap. Estimasi Elo yang ditampilkan adalah acuan preset tengah, sehingga mode adaptif sebaiknya dibaca sebagai rentang latihan, bukan rating resmi.
+**Kekuatan adaptif per fase** aktif dari panel V15. Budget preset menjadi baseline middlegame; posisi opening yang tenang memakai sekitar 75%, endgame queenless bermaterial rendah sekitar 115%, dan posisi sedang check sekitar 125%. Budget selalu dibulatkan dan dibatasi 1–256 node. Model, tombol Elo, dan limiter tetap sama; toggle dapat dimatikan untuk kembali ke budget kalibrasi tetap. Estimasi Elo yang ditampilkan adalah acuan preset tengah, sehingga mode adaptif sebaiknya dibaca sebagai rentang latihan, bukan rating resmi.
 
 **Auto move** menjalankan rekomendasi saat giliranmu. **Auto premove** mengantrekan langkah melalui API premove native pada papan saat giliran lawan. Antrean diverifikasi dari `game.premoves.getQueue()` dan FEN aktual harus tetap sama setelah antrean dipasang. Situs sendiri mengonsumsi antrean saat langkah lawan datang. Produk tidak memasang plugin tambahan atau memanggil API pengiriman langkah langsung untuk premove; papan pertandingan harus menyediakan plugin native-nya.
 
@@ -137,4 +137,4 @@ Pada Windows, paket menyertakan build Lc0 GPU DirectML sebagai jalur opsional. S
 
 Panel menghitung **terpasang**, **terpakai**, **teramati**, **batal**, dan penolakan per game. Terpakai memerlukan event native dengan flag boolean `consumedPremove === true`, langkah yang cocok, dan FEN sesudah premove. Teramati berarti queue kosong dan FEN cocok tanpa event konsumsi yang terverifikasi; kedua jenis bukti tidak disamakan. Event ganda, fungsi yang kebetulan truthy, dan hasil dari game lain ditolak. Daemon menyimpan audit per game di `runtime/games/*.json`; gunakan `--audit-dir` untuk folder lain. Arsip distribusi tidak memuat audit atau sesi pengguna. Reload selalu mematikan otomatisasi.
 
-Pemeriksaan: `python check_adaptive_strength.py` untuk policy fase dan batas node, `python check_humanize.py` untuk repertoar persona, sidik tempo, pacing kursor, kesalahan manusiawi, dan budget panik, `python check_consistency.py` untuk evaluasi 10 game satu persona, `python check_determinism.py` untuk pengulangan langkah engine nyata, `python check_humanlikeness.py` untuk laporan CPL dan tempo human-likeness terhadap oracle Stockfish dengan baseline lokal (memerlukan engine terpasang; beberapa menit), `python check_premove.py` untuk cabang, advanced ranking, endgame, dan pembatalan, `python check_premove_engine.py` untuk MultiPV engine nyata dan pemisahan cache, `python check_engine_upgrade.py` untuk opening book dan batas MultiPV per Elo, `python check_premove_ui.py` untuk enam siklus queue/konsumsi/isi ulang dalam kontrak native terisolasi, `python check_time_management.py` untuk jalur jam normal/kritis/taktis, dan `python check_auto_moves.py` untuk mouse, promosi pintar, dan papan di luar layar. `python check_browser.py` memerlukan daemon di CDP 9222 dengan `--status runtime/v6-status.json`. Diagnosis opsional `python check_native_board.py` memerlukan papan situs yang disiapkan lokal, bukan match aktif. Uji terisolasi tidak membuktikan pertandingan online; V14 belum diuji ulang melawan manusia. Game online V9 sebelumnya hanya membuktikan Auto move.
+Pemeriksaan: `python check_adaptive_strength.py` untuk policy fase dan batas node, `python check_humanize.py` untuk repertoar persona, sidik tempo, pacing kursor, kesalahan manusiawi, dan budget panik, `python check_consistency.py` untuk evaluasi 10 game satu persona, `python check_determinism.py` untuk pengulangan langkah engine nyata, `python check_humanlikeness.py` untuk laporan CPL dan tempo human-likeness terhadap oracle Stockfish dengan baseline lokal (memerlukan engine terpasang; beberapa menit), `python check_premove.py` untuk cabang, advanced ranking, endgame, dan pembatalan, `python check_premove_engine.py` untuk MultiPV engine nyata dan pemisahan cache, `python check_engine_upgrade.py` untuk opening book dan batas MultiPV per Elo, `python check_patricia.py` untuk pemetaan Skill Patricia, routing mode, dan langkah legal dari worker sungguhan, `python check_premove_ui.py` untuk enam siklus queue/konsumsi/isi ulang dalam kontrak native terisolasi, `python check_time_management.py` untuk jalur jam normal/kritis/taktis, dan `python check_auto_moves.py` untuk mouse, promosi pintar, dan papan di luar layar. `python check_browser.py` memerlukan daemon di CDP 9222 dengan `--status runtime/v6-status.json`. Diagnosis opsional `python check_native_board.py` memerlukan papan situs yang disiapkan lokal, bukan match aktif. Uji terisolasi tidak membuktikan pertandingan online; V15 belum diuji ulang melawan manusia. Game online V9 sebelumnya hanya membuktikan Auto move.

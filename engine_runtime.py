@@ -140,6 +140,18 @@ class EngineSpec:
                 'available': self.available, 'kind': self.kind}
 
 
+# Patricia's published Skill_Level table (1-20); 21 is full strength and
+# is never selected here. Panel Elo buttons map to the nearest level.
+PATRICIA_SKILL_ELO = (500, 800, 1000, 1200, 1300, 1400, 1500, 1600, 1700, 1800,
+                      1900, 2000, 2100, 2200, 2300, 2400, 2500, 2650, 2800, 3000)
+
+
+def patricia_skill_for_elo(elo):
+    """Nearest Patricia Skill_Level (1-20) for a panel Elo button."""
+    return min(range(len(PATRICIA_SKILL_ELO)),
+               key=lambda index: abs(PATRICIA_SKILL_ELO[index] - elo)) + 1
+
+
 def engine_specs(stockfish):
     python = ROOT / '.venv' / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
     # A frozen Windows build ships Maia as a sidecar executable. Source builds
@@ -156,11 +168,14 @@ def engine_specs(stockfish):
         maia_ready = maia_ready and maia_worker.exists()
     else:
         maia_ready = maia_ready and python.exists()
+    patricia = ROOT / 'runtime' / ('patricia.exe' if os.name == 'nt' else 'patricia')
     specs = {
         'stockfish': EngineSpec('stockfish', 'Stockfish', stockfish, 1320, 3190),
         # Restrict the UI to the model's supported human rating range, not the broad UCI input range.
         'maia3': EngineSpec('maia3', 'Maia 3 · 5M', maia, 600, 2600,
-                            maia_ready)}
+                            maia_ready),
+        'patricia': EngineSpec('patricia', 'Patricia · agresif', [str(patricia)], 500, 3000,
+                               patricia.is_file())}
     binary, backend = _select_lc0_runtime()
     cpu_binary = ROOT / 'runtime' / ('lc0.exe' if os.name == 'nt' else 'lc0')
     cpu_supported = _supported_lc0_backends(str(cpu_binary))
@@ -290,6 +305,10 @@ class EngineWorker:
         elif self.spec.key == 'maia3':
             # python-chess manages MultiPV itself; its default is already set by the CLI.
             self.engine.configure({'Temperature': '0'})
+        elif self.spec.key == 'patricia':
+            if 'Skill_Level' not in self.engine.options:
+                raise chess.engine.EngineError('Patricia does not support Skill_Level')
+            self.engine.configure({'Threads': self.threads, 'Hash': self.hash_mb})
         elif self.spec.kind == 'nodes':
             self.engine.configure({'Threads': self.threads, 'MinibatchSize': 1,
                                    'NNCacheSize': 20000, 'SmartPruningFactor': '0', 'RamLimitMb': 128, 'MaxPrefetch': 0})
@@ -322,11 +341,16 @@ class EngineWorker:
                 if self.stopped:
                     return {'move': None, 'cached': False}
                 if self.spec.kind != 'nodes' and self.configured_elo != request.elo:
-                    option = 'UCI_Elo' if self.spec.key == 'stockfish' else 'Elo'
-                    self.engine.configure({option: request.elo})
+                    if self.spec.key == 'stockfish':
+                        option, value = 'UCI_Elo', request.elo
+                    elif self.spec.key == 'patricia':
+                        option, value = 'Skill_Level', patricia_skill_for_elo(request.elo)
+                    else:
+                        option, value = 'Elo', request.elo
+                    self.engine.configure({option: value})
                     self.configured_elo = request.elo
                 limit = (chess.engine.Limit(nodes=request.nodes, time=.4 if request.analysis else 2) if self.spec.kind == 'nodes' else
-                         chess.engine.Limit(time=min(.2,self.think) if request.analysis else self.think) if self.spec.key == 'stockfish' else chess.engine.Limit(nodes=1))
+                         chess.engine.Limit(time=min(.2,self.think) if request.analysis else self.think) if self.spec.key in ('stockfish', 'patricia') else chess.engine.Limit(nodes=1))
                 self.metrics['searches'] += 1
                 # Stable game identity retains engine state/hash between moves.
                 identity = (request.owner, request.game, request.nodes) if self.spec.kind == 'nodes' else (request.owner, request.game)

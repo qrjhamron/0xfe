@@ -29,7 +29,7 @@ if (-not (Test-Path 'runtime\stockfish.exe')) {
 if (-not (Test-Path 'runtime\lc0.exe') -or -not (Test-Path 'runtime\dnnl.dll')) {
     $Lc0Url = 'https://github.com/LeelaChessZero/lc0/releases/download/v0.32.1/lc0-v0.32.1-windows-cpu-dnnl.zip'
     $Lc0Sha256 = 'B9CFCFBD3DABFFBFD452F6E8E087C22273721BEF48EBA19640B6D92006C142F5'
-    $TempRoot = Join-Path ([IO.Path]::GetTempPath()) 'move-coach-lc0-v14'
+    $TempRoot = Join-Path ([IO.Path]::GetTempPath()) 'move-coach-lc0-v15'
     New-Item -ItemType Directory -Force $TempRoot | Out-Null
     $Archive = Join-Path $TempRoot 'lc0.zip'
     Invoke-WebRequest -Uri $Lc0Url -OutFile $Archive
@@ -50,7 +50,7 @@ if (-not (Test-Path 'runtime\lc0-gpu.exe') -or -not (Test-Path 'runtime\onnxrunt
     # not require cudart64_12.dll or a separately installed CUDA toolkit.
     $GpuUrl = 'https://github.com/LeelaChessZero/lc0/releases/download/v0.32.1/lc0-v0.32.1-windows-onnx-dml.zip'
     $GpuSha256 = '86AAC242B3A1C6986D02ACC33B8CC64175B11A21B6941C62443C07FA18AC7539'
-    $GpuTemp = Join-Path ([IO.Path]::GetTempPath()) 'move-coach-lc0-gpu-v14'
+    $GpuTemp = Join-Path ([IO.Path]::GetTempPath()) 'move-coach-lc0-gpu-v15'
     New-Item -ItemType Directory -Force $GpuTemp | Out-Null
     $GpuArchive = Join-Path $GpuTemp 'lc0-gpu.zip'
     Invoke-WebRequest -Uri $GpuUrl -OutFile $GpuArchive
@@ -69,6 +69,14 @@ if (-not (Test-Path 'runtime\lc0-gpu.exe') -or -not (Test-Path 'runtime\onnxrunt
     Set-Content -Path 'runtime\lc0-gpu-backend.txt' -Value 'onnx-dml' -NoNewline
 }
 & $VenvPython setup_lc0.py --lc0 runtime\lc0.exe
+if (-not (Test-Path 'runtime\patricia.exe')) {
+    $PatriciaUrl = 'https://github.com/Adam-Kulju/Patricia/releases/download/5.1/patricia_v2.exe'
+    $PatriciaSha256 = '5B3E90932771C218BABF2C12EA55AF8389F7BEF1E5FC6C391D9415F86B4FFF51'
+    Invoke-WebRequest -Uri $PatriciaUrl -OutFile 'runtime\patricia.exe'
+    if ((Get-FileHash 'runtime\patricia.exe' -Algorithm SHA256).Hash -ne $PatriciaSha256) {
+        throw 'Patricia checksum mismatch.'
+    }
+}
 if ($LASTEXITCODE -ne 0) { throw 'Lc0 and weight installation failed.' }
 # Maia is packaged as a CPU sidecar. It does not require CUDA and uses the
 # cached Maia-3 5M checkpoint, so the finished installer works offline.
@@ -99,4 +107,4 @@ if (-not $Iscc) {
 New-Item -ItemType Directory -Force windows\Output | Out-Null
 & $Iscc /Qp windows\MoveCoach.iss
 if ($LASTEXITCODE -ne 0) { throw 'Inno Setup build failed.' }
-Write-Host "Created windows\Output\MoveCoach-Setup-v14.exe"
+Write-Host "Created windows\Output\MoveCoach-Setup-v15.exe"

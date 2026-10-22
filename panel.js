@@ -1,5 +1,5 @@
 ({defaults, presets, configId, runtime = {}, engines = {}}) => {
-  const VERSION = 14;
+  const VERSION = 15;
   const GLOBAL = '__chessArrowCoach';
   if (window[GLOBAL]?.version === VERSION && window[GLOBAL]?.configId === configId) return window[GLOBAL].read();
   window[GLOBAL]?.destroy();
@@ -10,6 +10,7 @@
   const choices=presets;
   const levels=Object.keys(choices).map(Number).sort((a,b)=>a-b);
   const maiaAvailable=engines?.maia3?.available===true;
+  const patriciaAvailable=engines?.patricia?.available===true;
   const profileTitles=['NONE','GM','IM','FM','NM','CM','WGM','WIM'];
   // One stable player identity per installation. The daemon seeds every
   // humanization choice from (persona, position), so the same person keeps
@@ -26,7 +27,7 @@
     const elo=levels.includes(wanted)?wanted:
       (available.includes(initial.elo)?initial.elo:available[0]||initial.elo);
     return {
-      elo, engine:maiaAvailable && ['maia3','hybrid'].includes(value?.engine)?value.engine:'calibrated', profileVisible:value?.profileVisible!==false,
+      elo, engine:(maiaAvailable && ['maia3','hybrid'].includes(value?.engine))||(patriciaAvailable && value?.engine==='patricia')?value.engine:'calibrated', profileVisible:value?.profileVisible!==false,
       profileTitle:profileTitles.includes(String(value?.profileTitle||''))?String(value.profileTitle):'GM',
       persona:validPersona(value?.persona)?value.persona:newPersona(),
       autoMove:aliveAutomation && value?.autoMove===true, autoPremove:alivePremove && value?.autoPremove===true,
@@ -132,7 +133,7 @@
     <div class="coach-levels" role="group" aria-labelledby="coach-elo-label"></div>
     <div class="coach-settings" style="grid-template-columns:1fr">
       <label class="coach-field">Saya bermain<select aria-label="Warna pemain"><option value="auto">Otomatis</option><option value="white">Putih</option><option value="black">Hitam</option><option value="both">Kedua sisi · analisis</option></select></label>
-      <label class="coach-field">Mode mesin<select aria-label="Mode mesin"><option value="calibrated">Lc0 · terkalibrasi</option><option value="maia3" ${maiaAvailable?'':'disabled'}>Maia 3 · gaya manusia${maiaAvailable?'':' (belum terpasang)'}</option><option value="hybrid" ${maiaAvailable?'':'disabled'}>Hybrid · Maia tenang + Lc0 taktis${maiaAvailable?'':' (belum terpasang)'}</option></select></label>
+      <label class="coach-field">Mode mesin<select aria-label="Mode mesin"><option value="calibrated">Lc0 · terkalibrasi</option><option value="maia3" ${maiaAvailable?'':'disabled'}>Maia 3 · gaya manusia${maiaAvailable?'':' (belum terpasang)'}</option><option value="hybrid" ${maiaAvailable?'':'disabled'}>Hybrid · Maia tenang + Lc0 taktis${maiaAvailable?'':' (belum terpasang)'}</option><option value="patricia" ${patriciaAvailable?'':'disabled'}>Patricia · agresif${patriciaAvailable?'':' (belum terpasang)'}</option></select></label>
       <label class="coach-switch"><input type="checkbox" aria-label="Profil visual">Profil visual</label>
       <label class="coach-field">Gelar visual<select aria-label="Gelar visual"><option>GM</option><option>IM</option><option>FM</option><option>NM</option><option>CM</option><option>WGM</option><option>WIM</option><option>NONE</option></select></label>
     </div>
@@ -161,7 +162,7 @@
     <div class="coach-appearance"><label>Warna<input type="color" aria-label="Warna panah"></label>
       <label style="margin-left:auto">Tebal<input type="range" aria-label="Ketebalan panah" min="6" max="26" step="1"><span data-field="width"></span></label></div>
     <p data-field="error" role="alert"></p><p class="coach-footer" data-field="footer">Level latihan · rekomendasi saat giliranmu</p>
-    <div class="coach-update"><button type="button" data-action="update">Cek pembaruan</button><span data-field="update-status">Versi ${defaults.appVersion||'14'}</span></div>
+    <div class="coach-update"><button type="button" data-action="update">Cek pembaruan</button><span data-field="update-status">Versi ${defaults.appVersion||'15'}</span></div>
     <div class="coach-update"><span data-field="persona"></span><button type="button" data-action="persona-reset" title="Ganti identitas pemain dan mulai gaya baru">Ganti pemain</button></div>
     <div class="coach-update"><button type="button" data-action="persona-copy" aria-label="Salin ID pemain" title="Salin ID pemain untuk dipakai di mesin lain">Salin</button><button type="button" data-action="persona-paste" aria-label="Tempel ID pemain" title="Tempel ID pemain dari mesin lain">Tempel</button></div>
     <p class="coach-footer" data-field="runtime-status">${runtime.label||'CPU otomatis'} · ${runtime.reason||'Status engine lokal'}</p>
@@ -203,8 +204,8 @@
       const latest=releases.find(item=>!item.draft&&!item.prerelease&&item.tag_name?.startsWith('move-coach-v'));
       if(!latest) throw new Error('release missing');
       latestReleaseUrl=latest.html_url||defaults.releaseUrl;
-      const match=latest.tag_name.match(/move-coach-v(\d+)/i), version=match?.[1]||defaults.appVersion||'14';
-      if(Number(version)>Number(defaults.appVersion||'14')) {
+      const match=latest.tag_name.match(/move-coach-v(\d+)/i), version=match?.[1]||defaults.appVersion||'15';
+      if(Number(version)>Number(defaults.appVersion||'15')) {
         updateButton.textContent='Buka pembaruan';
         text('update-status',`Versi ${version} tersedia`);
       } else {
@@ -247,7 +248,7 @@
     text('width',String(prefs.width));
     applyGameTitle();
     panel.querySelector('.coach-switch span').textContent=prefs.enabled ? 'Aktif' : 'Nonaktif';
-    text('engine-name',`LEVEL ${prefs.elo} · ${prefs.engine==='maia3'?'MAIA 3':prefs.engine==='hybrid'?'HYBRID':'GUEST'}`);
+    text('engine-name',`LEVEL ${prefs.elo} · ${prefs.engine==='maia3'?'MAIA 3':prefs.engine==='hybrid'?'HYBRID':prefs.engine==='patricia'?'PATRICIA':'GUEST'}`);
     text('runtime-status',`${runtime.label||'CPU otomatis'} · ${runtime.reason||'Status engine lokal'}`);
     const evidence=choices[prefs.elo];
     text('footer',`${evidence.target_within_interval?'Level latihan':'Target tentatif'} · estimasi lokal ≈${Math.round(evidence.estimate/10)*10}`);

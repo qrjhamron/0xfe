@@ -61,8 +61,14 @@ def tactical_spot(fen):
 
 
 def selected_preset(snapshot, specs):
-    """Resolve the calibrated level, with an optional Maia human-play mode."""
-    preset = resolve_preset(snapshot['prefs']['elo'], specs)
+    """Resolve the calibrated level, with optional Maia/Patricia modes."""
+    elo = snapshot['prefs']['elo']
+    if snapshot.get('prefs', {}).get('engine') == 'patricia' and specs['patricia'].available:
+        # Patricia carries its own strength table, so it must keep working
+        # even when the calibrated Lc0 weights are not installed.
+        if elo in PRESETS:
+            return replace(PRESETS[elo], engine='patricia')
+    preset = resolve_preset(elo, specs)
     if snapshot.get('prefs', {}).get('engine') == 'maia3' and specs['maia3'].available:
         return replace(preset, engine='maia3')
     return preset
@@ -79,6 +85,8 @@ def engine_for_position(requested, preset, phase_budget, fen, specs):
     maia_ok = specs['maia3'].available
     if requested == 'maia3' and maia_ok:
         return 'maia3'
+    if requested == 'patricia' and specs['patricia'].available:
+        return 'patricia'
     if requested == 'hybrid' and maia_ok:
         phase = (phase_budget.phase if phase_budget and phase_budget.phase != 'fixed'
                  else classify_phase(chess.Board(fen)))
@@ -157,10 +165,12 @@ def run(args, specs):
     assets_id=hashlib.sha256((panel+overlay).encode()).hexdigest()[:12]
     panel_id=f'{CONFIG_ID}:{availability}:{assets_id}'
     panel_options = {'defaults': {'elo': args.elo, 'bothSides': args.both_sides,
-                                  'appVersion': '14', 'releaseUrl': 'https://github.com/qrjhamron/0xfe/releases'},
+                                  'appVersion': '15', 'releaseUrl': 'https://github.com/qrjhamron/0xfe/releases'},
                      'runtime': lc0_runtime_status(),
                      'engines': {'maia3': {'label': 'Maia 3 · gaya manusia',
-                                           'available': specs['maia3'].available}},
+                                           'available': specs['maia3'].available},
+                                 'patricia': {'label': 'Patricia · agresif',
+                                              'available': specs['patricia'].available}},
                      'presets': public_presets(specs), 'configId': panel_id}
     logging.info('Lc0 runtime: %s', panel_options['runtime']['label'])
     # Panel prefs are the source of truth; this file-backed value only covers
@@ -205,7 +215,7 @@ def run(args, specs):
                         try:
                             response = page.evaluate(POLL)
                             snapshot = response.get('snapshot')
-                            if response.get('version') != 14 or response.get('configId') != panel_id:
+                            if response.get('version') != 15 or response.get('configId') != panel_id:
                                 snapshot = page.evaluate(panel, panel_options)
                             if snapshot:
                                 native_audit=page.evaluate('()=>window.__chessArrowCoach?.audit()')
@@ -301,7 +311,7 @@ def run(args, specs):
                                               multipv=multipv_for_elo(elo) if analysis_mode else 1,
                                               persona=persona, blunders=blunders, panic=panic_active,
                                               phase=phase_budget.phase if phase_budget else 'fixed',
-                                              base_nodes=(scaled_nodes(resolve_preset(elo, specs).nodes,
+                                              base_nodes=(scaled_nodes(PRESETS[elo].nodes,
                                                                        args.node_multiplier)
                                                           if phase_budget else preset.nodes))
                             pool.submit(model, request)
@@ -416,7 +426,9 @@ def main():
     try:
         resolve_preset(args.elo, specs)
     except ValueError as exc:
-        parser.error(str(exc))
+        if not specs['patricia'].available:
+            parser.error(str(exc))
+        logging.warning('%s; mode Patricia tetap tersedia', exc)
     try:
         with InstanceLock():
             run(args, specs)
