@@ -25,6 +25,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed.' }
 # Patricia-focused build: no Lc0 binaries/weights and no Maia checkpoint
 # are downloaded or packaged. Lc0/Maia modes remain available only in
 # source installs that provide those engines themselves.
+New-Item -ItemType Directory -Force runtime | Out-Null
 if (-not (Test-Path 'runtime\patricia.exe')) {
     $PatriciaUrl = 'https://github.com/Adam-Kulju/Patricia/releases/download/5.1/patricia_v2.exe'
     $PatriciaSha256 = '5B3E90932771C218BABF2C12EA55AF8389F7BEF1E5FC6C391D9415F86B4FFF51'
