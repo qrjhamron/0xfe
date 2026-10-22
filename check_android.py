@@ -82,10 +82,21 @@ print('PASS: SAN labels, White-POV score, and render-on-change are wired')
 
 build_script = (ANDROID / 'build-patricia.sh').read_text()
 assert '67d83d7056801cfab868872d27b99d192488a316' in build_script
-assert 'cross-aarch64' in build_script and 'libpatricia.so' in build_script
+assert 'aarch64-linux-android26' in build_script and 'libpatricia.so' in build_script
+assert '-static-libstdc++' in build_script
 workflow = (ROOT / '.github/workflows/android.yml').read_text()
 assert 'build-patricia.sh' in workflow and 'assembleDebug' in workflow
+assert 'setup-ndk' in workflow and 'ANDROID_NDK_HOME' in workflow
 assert 'testDebugUnitTest' in workflow and 'upload-artifact' in workflow
-print('PASS: GitHub Actions cross-compiles pinned Patricia and builds the APK')
+print('PASS: GitHub Actions builds pinned Patricia with the Android NDK')
+
+# Regression guard for the eternal "preparing" bug: engine waits must have
+# real deadlines, failures must restart the process, and the panel must be
+# able to say why instead of spinning forever.
+assert 'ArrayBlockingQueue' in engine_java and 'lastError' in engine_java
+assert 'Patricia tidak merespons' in engine_java
+assert 'engineStatus' in panel_js and 'engineStatusText' in panel_js
+assert 'panelEngineStatus' in main_java and 'retryAtMs' in main_java
+print('PASS: engine timeouts, restart, and visible failure status are wired')
 
 print('ALL ANDROID CHECKS PASSED')

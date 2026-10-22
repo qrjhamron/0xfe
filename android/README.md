@@ -25,14 +25,17 @@ sidebar Chess.com.
 ## Build
 
 Build dilakukan oleh GitHub Actions (`.github/workflows/android.yml`):
-cross-compile Patricia statis arm64 dari commit terpin, lalu Gradle
-membangun APK debug dan menjalankan unit test. APK tersedia sebagai
-artifact `movecoach-android-apk` pada run workflow tersebut.
+Patricia dicompile dengan Android NDK (bionic, API 26) dari commit terpin,
+lalu Gradle membangun APK debug dan menjalankan unit test. APK tersedia
+sebagai artifact `movecoach-android-apk` pada run workflow tersebut.
+Binary bionic dipakai karena binary glibc statis bisa mati di dalam
+sandbox aplikasi Android; bila engine gagal merespons, panel menampilkan
+alasannya dan engine dimulai ulang otomatis, bukan "Menyiapkan…" selamanya.
 
-Build lokal (Linux dengan JDK 17 dan Gradle 8.9):
+Build lokal (Linux dengan JDK 17, Gradle 8.9, dan Android NDK r26):
 
 ```sh
-sudo apt-get install g++-aarch64-linux-gnu
+export ANDROID_NDK_HOME=/path/to/android-ndk-r26d
 ./android/build-patricia.sh
 cd android && gradle :app:testDebugUnitTest :app:assembleDebug
 ```

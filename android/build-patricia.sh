@@ -1,13 +1,18 @@
 #!/bin/sh
-# Build the pinned Patricia engine as a fully static arm64 binary and stage
-# it where Gradle packages native libraries. Run by GitHub Actions; locally
-# it needs an aarch64-linux-gnu C++ cross compiler.
+# Build the pinned Patricia engine for Android arm64 and stage it where
+# Gradle packages native libraries.
+#
+# The engine is compiled with the Android NDK (bionic libc) whenever
+# ANDROID_NDK_HOME/ANDROID_NDK_ROOT is set, which is how GitHub Actions
+# builds it: a bionic binary runs natively inside the app sandbox. Without
+# an NDK it falls back to a fully static glibc cross build for local use.
 set -eu
 
 PIN=67d83d7056801cfab868872d27b99d192488a316
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 SRC="$ROOT/.patricia-src"
 OUT="$ROOT/app/src/main/jniLibs/arm64-v8a"
+BIN="$SRC/engine/patricia_aarch64"
 
 if [ ! -d "$SRC/engine" ]; then
     rm -rf "$SRC"
@@ -16,16 +21,26 @@ if [ ! -d "$SRC/engine" ]; then
         | tar -xz -C "$SRC" --strip-components=1
 fi
 
-cd "$SRC/engine"
-make cross-aarch64 CROSS="${CROSS:-aarch64-linux-gnu}"
-
-# Stripping debug/symbol data keeps the APK smaller and the engine faster
-# to load; the binary is fully static either way.
-if command -v "${CROSS:-aarch64-linux-gnu}-strip" >/dev/null 2>&1; then
-    "${CROSS:-aarch64-linux-gnu}-strip" patricia_aarch64
+NDK="${ANDROID_NDK_HOME:-${ANDROID_NDK_ROOT:-}}"
+if [ -n "$NDK" ]; then
+    CLANGXX=$(ls "$NDK"/toolchains/llvm/prebuilt/*/bin/clang++ | head -n 1)
+    STRIP=$(ls "$NDK"/toolchains/llvm/prebuilt/*/bin/llvm-strip | head -n 1)
+    cd "$SRC/engine"
+    # API 26 matches the app minSdk. -static-libstdc++ keeps libc++ inside
+    # the executable so nothing else must ship beside it.
+    "$CLANGXX" --target=aarch64-linux-android26 -O3 -std=c++20 -ffast-math \
+        -march=armv8-a -pthread -static-libstdc++ \
+        src/patricia.cpp src/fathom/src/tbprobe.c -o patricia_aarch64
+    "$STRIP" patricia_aarch64
+else
+    cd "$SRC/engine"
+    make cross-aarch64 CROSS="${CROSS:-aarch64-linux-gnu}"
+    if command -v "${CROSS:-aarch64-linux-gnu}-strip" >/dev/null 2>&1; then
+        "${CROSS:-aarch64-linux-gnu}-strip" patricia_aarch64
+    fi
 fi
 
 mkdir -p "$OUT"
-cp patricia_aarch64 "$OUT/libpatricia.so"
+cp "$BIN" "$OUT/libpatricia.so"
 chmod 755 "$OUT/libpatricia.so"
 echo "Staged $OUT/libpatricia.so"

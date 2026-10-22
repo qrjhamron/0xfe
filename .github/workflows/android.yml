@@ -13,12 +13,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install arm64 cross compiler
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y g++-aarch64-linux-gnu
+      - name: Set up Android NDK
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26d
+          local-cache: true
 
-      - name: Build Patricia (static arm64)
+      - name: Build Patricia (Android arm64, bionic)
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: ./android/build-patricia.sh
 
       - name: Set up JDK 17

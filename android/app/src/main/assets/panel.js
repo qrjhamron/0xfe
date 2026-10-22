@@ -193,6 +193,7 @@
     history: 'Mode riwayat · kembali ke posisi live', unknown: 'Menunggu identitas pemain',
     review: 'Mode analisis'};
   let renderedSignature = '';
+  let engineStatusText = '';
   function tick() {
     if (!alive) return null;
     mount();
@@ -203,12 +204,12 @@
       moveText = String(lastMove.san || lastMove.move || '—');
       detail = `Patricia · Skill ${prefs.skill}` + (lastMove.score ? ` · ${lastMove.score}` : '');
     } else if (s) {
-      detail = s.eligible ? 'Menyiapkan…' : '';
+      detail = engineStatusText || (s.eligible ? 'Menyiapkan…' : '');
       if (!s.eligible) document.querySelectorAll('#human-engine-arrow').forEach(e => e.remove());
     }
     // Polls run several times a second; touch the DOM only when what the
     // user would see actually changed.
-    const signature = JSON.stringify([status, moveText, detail, prefs.enabled, prefs.skill,
+    const signature = JSON.stringify([status, moveText, detail, engineStatusText, prefs.enabled, prefs.skill,
       prefs.side, prefs.color, prefs.width, prefs.collapsed, s?.token || '']);
     if (signature === renderedSignature) return s;
     renderedSignature = signature;
@@ -238,6 +239,12 @@
       const current = tick();
       if (!current?.eligible || payload.token !== current.token || payload.skill !== prefs.skill) return false;
       lastMove = payload;
+      engineStatusText = '';
+      tick();
+      return true;
+    },
+    engineStatus(message) {
+      engineStatusText = message ? String(message) : '';
       tick();
       return true;
     },

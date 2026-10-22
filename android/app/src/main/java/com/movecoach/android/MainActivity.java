@@ -168,6 +168,9 @@ public final class MainActivity extends Activity {
             if (key.equals(pendingKey)) {
                 return;
             }
+            if (android.os.SystemClock.uptimeMillis() < retryAtMs) {
+                return; // Engine recently failed; panel shows why.
+            }
             pendingKey = key;
             executor.execute(() -> {
                 PatriciaEngine.Result result = engine.bestMove(fen, skill, MOVE_TIME_MS);
@@ -178,6 +181,15 @@ public final class MainActivity extends Activity {
         }
     }
 
+    private long retryAtMs;
+    private int consecutiveFailures;
+
+    private void panelEngineStatus(String message) {
+        String js = "window.__chessArrowCoach?.engineStatus?.("
+                + JSONObject.quote(message == null ? "" : message) + ");";
+        webView.evaluateJavascript(js, null);
+    }
+
     private void showMove(String key, String fen, String token, int skill,
                           PatriciaEngine.Result result) {
         if (destroyed || !key.equals(latestKey)) {
@@ -185,8 +197,16 @@ public final class MainActivity extends Activity {
         }
         pendingKey = "";
         if (result == null || result.move == null) {
+            consecutiveFailures++;
+            retryAtMs = android.os.SystemClock.uptimeMillis()
+                    + Math.min(5000L, 1000L * consecutiveFailures);
+            String error = engine.lastError();
+            panelEngineStatus("Mesin tidak merespons · mencoba lagi…"
+                    + (error != null ? " (" + error + ")" : ""));
             return;
         }
+        consecutiveFailures = 0;
+        retryAtMs = 0;
         try {
             String san = San.toSan(fen, result.move);
             boolean whiteToMove = fen.split(" ")[1].equals("w");
