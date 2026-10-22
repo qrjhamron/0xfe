@@ -1,9 +1,11 @@
 ({fen, move, skill, san, score, token}) => {
   const board = document.querySelector('wc-chess-board, chess-board');
-  if (!board?.game || board.game.getFEN() !== fen) return false;
+  if (!board?.game || board.game.getFEN() !== fen) return 'no-board';
   const coach = window.__chessArrowCoach;
   const current = coach?.read();
-  if (move && (!current?.eligible || current.token !== token || current.prefs.skill !== skill)) return false;
+  if (move && !current?.eligible) return 'not-eligible';
+  if (move && current.token !== token) return 'stale-token';
+  if (move && current.prefs.skill !== skill) return 'stale-skill';
   let svg = board.querySelector('#human-engine-arrow');
   if (!move) {
     svg?.remove();
@@ -18,7 +20,7 @@
     svg.innerHTML = '<defs><marker id="human-arrow-tip" viewBox="0 0 12 12" refX="9" refY="6" markerWidth="3" markerHeight="3" orient="auto"><path d="M 0 0 L 12 6 L 0 12 Z"/></marker></defs><line stroke-linecap="round" opacity=".88" marker-end="url(#human-arrow-tip)"/>';
     board.appendChild(svg);
   }
-  const flipped = !!board.game.getOptions().flipped;
+  const flipped = !!board.game.getOptions?.().flipped;
   const xy = square => {
     const file = square.charCodeAt(0) - 97, rank = Number(square[1]) - 1;
     return flipped ? [(7 - file) * 100 + 50, rank * 100 + 50]

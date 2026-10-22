@@ -184,7 +184,11 @@
     else if (phase !== 'review' && prefs.side !== 'both' && !side) reason = 'unknown';
     else if (phase !== 'review' && prefs.side !== 'both' && turn !== side) reason = 'opponent';
     const gameId = `${location.pathname}:${instanceId}:${gameEpoch}`;
-    const token = JSON.stringify([gameId, fen, phase, side, reason, revision]);
+    // The token keys an engine request to what the user sees. It must only
+    // contain stable facts (position, side, level, settings revision):
+    // phase/reason flicker during board animations and made every result
+    // arrive already stale, leaving the panel on "preparing" forever.
+    const token = JSON.stringify([fen, side, prefs.skill, revision]);
     return {fen, turn, playerColor, side, phase, reason, eligible: reason === 'ready',
       gameId, token, revision, prefs: {...prefs}};
   }

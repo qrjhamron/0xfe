@@ -35,6 +35,8 @@ public final class MainActivity extends Activity {
                     + ".forEach(e => e.remove()); return true; }";
     private static final int POLL_MS = 300;
     private static final int MOVE_TIME_MS = 600;
+    private static final String STARTING_FEN =
+            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
     private WebView webView;
     private Handler handler;
@@ -68,6 +70,18 @@ public final class MainActivity extends Activity {
         engine = new PatriciaEngine(new File(
                 getApplicationInfo().nativeLibraryDir, "libpatricia.so"));
         executor = Executors.newSingleThreadExecutor();
+        // Prove the engine works inside this app before any game starts;
+        // the panel reports the outcome so a dead engine is never silent.
+        executor.execute(() -> {
+            long started = android.os.SystemClock.uptimeMillis();
+            PatriciaEngine.Result probe = engine.bestMove(
+                    STARTING_FEN, SkillLevel.DEFAULT, 500);
+            long elapsed = android.os.SystemClock.uptimeMillis() - started;
+            String notice = probe != null && probe.move != null
+                    ? "Mesin siap · tes " + probe.move + " · " + elapsed + " ms"
+                    : "Tes mesin gagal · " + engine.lastError();
+            runOnUiThread(() -> panelEngineStatus(notice));
+        });
         handler = new Handler(Looper.getMainLooper());
         if (savedInstanceState == null) {
             webView.loadUrl(START_URL);
@@ -183,10 +197,12 @@ public final class MainActivity extends Activity {
 
     private long retryAtMs;
     private int consecutiveFailures;
+    private volatile String engineNotice = "";
 
     private void panelEngineStatus(String message) {
+        engineNotice = message == null ? "" : message;
         String js = "window.__chessArrowCoach?.engineStatus?.("
-                + JSONObject.quote(message == null ? "" : message) + ");";
+                + JSONObject.quote(engineNotice) + ");";
         webView.evaluateJavascript(js, null);
     }
 
@@ -219,8 +235,23 @@ public final class MainActivity extends Activity {
             payload.put("score", ScoreFormat.format(
                     result.scoreCp, result.mate, whiteToMove));
             payload.put("token", token);
-            String js = "(" + overlayJs + ")(" + payload + ");";
-            webView.evaluateJavascript(js, null);
+            String payloadJson = payload.toString();
+            String js = "(" + overlayJs + ")(" + payloadJson + ");";
+            webView.evaluateJavascript(js, value -> {
+                if ("true".equals(value)) {
+                    engineNotice = "";
+                    return;
+                }
+                // The arrow was rejected; still show the move as panel text.
+                String reportJs = "(p => window.__chessArrowCoach?.report(p))("
+                        + payloadJson + ");";
+                webView.evaluateJavascript(reportJs, shown -> {
+                    if (!"true".equals(shown)) {
+                        panelEngineStatus("Langkah tidak tampil · papan "
+                                + value + " · panel " + shown);
+                    }
+                });
+            });
         } catch (Exception ignored) {
             // The board moved on; the next poll will request a fresh move.
         }
@@ -242,6 +273,9 @@ public final class MainActivity extends Activity {
         String options = "{\"skillLevels\":" + levels
                 + ",\"defaultSkill\":" + SkillLevel.DEFAULT + "}";
         webView.evaluateJavascript("(" + panelJs + ")(" + options + ");", null);
+        if (!engineNotice.isEmpty()) {
+            panelEngineStatus(engineNotice);
+        }
     }
 
     private String readAsset(String name) {

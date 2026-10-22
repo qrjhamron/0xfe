@@ -99,4 +99,15 @@ assert 'engineStatus' in panel_js and 'engineStatusText' in panel_js
 assert 'panelEngineStatus' in main_java and 'retryAtMs' in main_java
 print('PASS: engine timeouts, restart, and visible failure status are wired')
 
+# Regression guard for moves arriving already stale: the request token may
+# only contain stable facts, the overlay must name its rejection, a rejected
+# arrow must still surface as panel text, and the engine must self-test.
+assert '[fen, side, prefs.skill, revision]' in panel_js
+assert 'gameId, fen, phase, side, reason' not in panel_js
+overlay_js = (MAIN / 'assets/overlay.js').read_text()
+assert 'getOptions?.()' in overlay_js and "'stale-token'" in overlay_js
+assert 'STARTING_FEN' in main_java and 'Mesin siap' in main_java
+assert 'report(p)' in main_java and 'Langkah tidak tampil' in main_java
+print('PASS: stable tokens, named rejections, text fallback, and engine self-test')
+
 print('ALL ANDROID CHECKS PASSED')
