@@ -51,10 +51,9 @@ public class SanTest {
 
     @Test
     public void checkSuffix() {
-        // 1.e4 e5 2.Nf3 Nc6 3.Bb5 is not check; use a queen check from h5
-        // after the d-pawn has moved: Qh5+ does not exist there, so verify a
-        // clean bishop check instead from a composed position.
-        String fen = "rnbqkbnr/ppp1pppp/8/3p4/2B1P3/8/PPPP1PPP/RNBQK1NR w KQkq - 0 1";
+        // Bishop takes f7 with a clear c4-f7 diagonal: check, not mate,
+        // because the king can still capture or step to e7.
+        String fen = "rnbqkbnr/pppp1ppp/8/4p3/2B1P3/8/PPPP1PPP/RNBQK1NR w KQkq - 0 1";
         assertEquals("Bxf7+", San.toSan(fen, "c4f7"));
     }
 
