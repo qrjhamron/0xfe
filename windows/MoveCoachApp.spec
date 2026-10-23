@@ -13,6 +13,19 @@ def required(path):
 
 required(RUNTIME / 'patricia.exe')
 
+# Fail the build loudly if QtWebEngine is absent from the environment.
+# PySide6-Addons 6.12 removed it; PyInstaller only warns about the missing
+# hidden imports and would silently ship an exe that cannot start.
+import PySide6
+
+_PYSIDE = Path(PySide6.__file__).resolve().parent
+for _name in ('QtWebEngineCore.pyd', 'QtWebEngineWidgets.pyd',
+              'QtWebEngineProcess.exe', 'Qt6WebEngineCore.dll'):
+    if not (_PYSIDE / _name).exists():
+        raise SystemExit(
+            f'QtWebEngine file missing from PySide6 install: {_name} '
+            '(pin PySide6-Addons==6.11.0; 6.12 has no QtWebEngine)')
+
 a = Analysis(
     [str(PROJECT / 'run_app.py')],
     pathex=[str(PROJECT)],

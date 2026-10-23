@@ -16,6 +16,8 @@ Chess.com tidak diinjeksi apa pun, skrip snapshot hanya membaca papan.
 Jalankan dari sumber (Windows, Python 3.12). Perhatikan: aplikasi butuh
 **PySide6-Addons** (isi Qt WebEngine); `pip install PySide6` saja tidak
 cukup dan aplikasi akan menolak jalan dengan petunjuk pemasangan.
+`requirements-app.txt` mem-pin **PySide6 6.11** karena 6.12 sudah tidak
+memuat QtWebEngine — jangan upgrade pin-nya.
 
 ```powershell
 python -m venv .venv

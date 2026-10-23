@@ -70,6 +70,16 @@ assert 'PySide6-Addons' in main_py and 'belum terpasang' in main_py and '_webeng
 assert 'from .windows import' not in main_py.split('def main')[0], 'windows import must stay lazy'
 spec = (root / 'windows/MoveCoachApp.spec').read_text()
 assert 'PySide6.QtWebEngineCore' in spec and 'PySide6.QtWebEngineWidgets' in spec
+assert 'QtWebEngineProcess.exe' in spec and 'QtWebEngine file missing' in spec, \
+    'spec must fail the build when QtWebEngine is absent'
+reqs_app = (root / 'requirements-app.txt').read_text()
+assert 'PySide6-Addons==6.11.0' in reqs_app and 'PySide6-Essentials==6.11.0' in reqs_app, \
+    'PySide6 must stay pinned to 6.11 (6.12 removed QtWebEngine)'
+build_ps1 = (root / 'windows/build_app.ps1').read_text()
+assert 'Start-Process' in build_ps1 and '-Wait' in build_ps1, \
+    'smoke test must wait for the GUI exe exit code'
+assert 'Bundled QtWebEngine file missing' in build_ps1, \
+    'build must verify the bundled WebEngine files exist'
 print('PASS: native overlay, tray controls, and streaming exclusion are wired')
 print('PASS: missing QtWebEngine fails with install instructions, not a traceback')
 print('ALL DESKTOP APP CHECKS PASSED')

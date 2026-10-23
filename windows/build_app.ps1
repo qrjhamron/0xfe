@@ -22,7 +22,20 @@ if ($LASTEXITCODE -ne 0) { throw 'Patricia installation failed.' }
 & $VenvPython -m PyInstaller --noconfirm --clean windows\MoveCoachApp.spec
 if ($LASTEXITCODE -ne 0) { throw 'PyInstaller app build failed.' }
 
+# The exe is useless without the WebEngine runtime next to it; verify the
+# bundle actually contains it instead of trusting hidden-import warnings.
+$BundleQt = Join-Path $Root 'dist\MoveCoachApp\_internal\PySide6'
+foreach ($Name in 'QtWebEngineCore.pyd', 'QtWebEngineWidgets.pyd',
+         'QtWebEngineProcess.exe', 'Qt6WebEngineCore.dll') {
+    if (-not (Test-Path (Join-Path $BundleQt $Name))) {
+        throw "Bundled QtWebEngine file missing: $Name"
+    }
+}
+
 $env:QT_QPA_PLATFORM = 'offscreen'
-& (Join-Path $Root 'dist\MoveCoachApp\MoveCoach.exe') --smoke
-if ($LASTEXITCODE -ne 0) { throw 'Move Coach app smoke test failed.' }
+# Start-Process -Wait: a plain `&` call does not wait for a GUI-subsystem
+# exe, so $LASTEXITCODE never reflected the smoke result.
+$Smoke = Start-Process -FilePath (Join-Path $Root 'dist\MoveCoachApp\MoveCoach.exe') `
+    -ArgumentList '--smoke' -Wait -PassThru
+if ($Smoke.ExitCode -ne 0) { throw "Move Coach app smoke test failed (exit $($Smoke.ExitCode))." }
 Write-Host 'Created dist\MoveCoachApp\MoveCoach.exe (smoke OK)'

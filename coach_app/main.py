@@ -7,9 +7,8 @@ from PySide6.QtWidgets import QApplication, QMessageBox
 INSTALL_HINT = (
     'Komponen Qt WebEngine (PySide6-Addons) belum terpasang.\n\n'
     'Kalau menjalankan dari sumber, pasang dulu di environment proyek:\n'
-    '    .venv\\Scripts\\python -m pip install PySide6-Addons\n'
-    'atau:\n'
-    '    .venv\\Scripts\\python -m pip install -r requirements-app.txt\n\n'
+    '    .venv\\Scripts\\python -m pip install -r requirements-app.txt\n'
+    '(harus PySide6 6.11 — versi 6.12 sudah tidak memuat QtWebEngine)\n\n'
     'Kalau menjalankan dari ZIP rilis, ekstrak seluruh isi ZIP dulu '
     'sebelum membuka MoveCoach.exe (jangan jalankan dari pratinjau ZIP).'
 )
