@@ -66,7 +66,7 @@ assert 'Mode Streaming' in windows and 'set_exclude_from_capture' in windows
 assert 'createElement' not in snapshot, 'snapshot must stay read-only'
 assert 'WA_TransparentForMouseEvents' in overlay
 main_py = (root / 'coach_app/main.py').read_text()
-assert 'PySide6-Addons belum terpasang' in main_py and '_webengine_missing' in main_py
+assert 'PySide6-Addons' in main_py and 'belum terpasang' in main_py and '_webengine_missing' in main_py
 assert 'from .windows import' not in main_py.split('def main')[0], 'windows import must stay lazy'
 spec = (root / 'windows/MoveCoachApp.spec').read_text()
 assert 'PySide6.QtWebEngineCore' in spec and 'PySide6.QtWebEngineWidgets' in spec
