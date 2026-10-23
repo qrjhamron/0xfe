@@ -18,7 +18,9 @@ a = Analysis(
     pathex=[str(PROJECT)],
     binaries=[(str(RUNTIME / 'patricia.exe'), 'runtime')],
     datas=[],
-    hiddenimports=['coach_app.windows', 'coach_app.overlay', 'coach_app.controller'],
+    hiddenimports=['coach_app.windows', 'coach_app.overlay', 'coach_app.controller',
+                   'PySide6.QtWebEngineCore', 'PySide6.QtWebEngineWidgets',
+                   'PySide6.QtWebChannel'],
     excludes=['playwright', 'tkinter', 'matplotlib'],
     noarchive=False,
 )

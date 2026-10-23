@@ -2,12 +2,41 @@
 import ctypes
 import sys
 
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QMessageBox
 
-from .windows import TrayApp, app_icon
+INSTALL_HINT = (
+    'Komponen Qt WebEngine (PySide6-Addons) belum terpasang.\n\n'
+    'Kalau menjalankan dari sumber, pasang dulu di environment proyek:\n'
+    '    .venv\\Scripts\\python -m pip install PySide6-Addons\n'
+    'atau:\n'
+    '    .venv\\Scripts\\python -m pip install -r requirements-app.txt\n\n'
+    'Kalau menjalankan dari ZIP rilis, ekstrak seluruh isi ZIP dulu '
+    'sebelum membuka MoveCoach.exe (jangan jalankan dari pratinjau ZIP).'
+)
+
+
+def _webengine_missing():
+    try:
+        import PySide6.QtWebEngineWidgets  # noqa: F401
+    except ImportError:
+        return True
+    return False
+
+
+def _fail_friendly():
+    print(INSTALL_HINT, file=sys.stderr)
+    try:
+        app = QApplication.instance() or QApplication(sys.argv)
+        QMessageBox.critical(None, 'Move Coach — dependensi kurang', INSTALL_HINT)
+    except Exception:
+        pass
+    return 1
 
 
 def main():
+    if _webengine_missing():
+        return _fail_friendly()
+    from .windows import TrayApp, app_icon
     if '--smoke' in sys.argv:
         # Headless packaging smoke test: build every window, then quit.
         import os

@@ -13,7 +13,9 @@ Chess.com tidak diinjeksi apa pun, skrip snapshot hanya membaca papan.
   browser. Level 1000–2300 memetakan ke Skill_Level Patricia.
 - Auto move (opsional) mengklik di dalam WebEngine aplikasi.
 
-Jalankan dari sumber (Windows, Python 3.12):
+Jalankan dari sumber (Windows, Python 3.12). Perhatikan: aplikasi butuh
+**PySide6-Addons** (isi Qt WebEngine); `pip install PySide6` saja tidak
+cukup dan aplikasi akan menolak jalan dengan petunjuk pemasangan.
 
 ```powershell
 python -m venv .venv
@@ -21,6 +23,10 @@ python -m venv .venv
 .venv\Scripts\python setup_patricia.py
 .venv\Scripts\python run_app.py
 ```
+
+Dari ZIP rilis: ekstrak **seluruh** isi ZIP ke satu folder dulu, baru
+jalankan `MoveCoach.exe` di dalamnya. Menjalankan exe langsung dari
+pratinjau ZIP Windows membuat modul Qt tidak ditemukan.
 
 Build Windows (`dist\MoveCoachApp\MoveCoach.exe`, termasuk smoke test
 offscreen) berjalan di workflow `windows-app.yml` atau lokal lewat
