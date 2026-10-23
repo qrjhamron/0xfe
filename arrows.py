@@ -24,7 +24,9 @@ from session_audit import SessionAudit
 from presets import PRESETS, CONFIG_ID, resolve_preset, public_presets
 from opening_book import lookup as opening_lookup
 from adaptive_strength import budget_for_position, classify_phase
-from human_style import ensure_persona, is_slip, panic_nodes, stable_int, valid_persona
+from human_style import (choose_candidate, choose_styled, ensure_persona,
+                         is_slip, panic_nodes, stable_int, tactical_spot,
+                         valid_persona, STYLES)
 from app_paths import ROOT
 
 POLL = """() => {const a=window.__chessArrowCoach;
@@ -48,136 +50,6 @@ def effective_budget(snapshot, preset, node_multiplier=1.0):
     budget = budget_for_position(chess.Board(snapshot['fen']), base,
                                  bool(snapshot.get('prefs', {}).get('adaptiveStrength', True)))
     return replace(preset, nodes=budget.nodes), budget
-
-
-def tactical_spot(fen):
-    """True when a human is most likely to slip: checks and captures around."""
-    try:
-        board = chess.Board(fen)
-    except ValueError:
-        return False
-    if board.is_check():
-        return True
-    return any(board.is_capture(move) for move in board.legal_moves)
-
-
-def selected_preset(snapshot, specs):
-    """Resolve the panel level; Patricia is the only engine."""
-    return resolve_preset(snapshot['prefs']['elo'], specs)
-
-
-def engine_for_position(requested, preset, phase_budget, fen, specs):
-    """Patricia plays every position; missing binary keeps the preset name."""
-    return 'patricia' if specs['patricia'].available else preset.engine
-
-
-def scaled_think_ms(base_ms, multiplier=1.0, remaining_ms=None, panic=True):
-    """Phase- and panic-scaled Patricia think time, clamped to 50-4000 ms."""
-    ms = base_ms * multiplier
-    if panic:
-        ms = ms * panic_nodes(100, remaining_ms) / 100
-    return max(50, min(4000, round(ms)))
-
-
-STYLES = ('solid', 'balanced', 'aggressive', 'wild', 'original')
-_PIECE_VALUES = {chess.PAWN: 1, chess.KNIGHT: 3, chess.BISHOP: 3,
-                 chess.ROOK: 5, chess.QUEEN: 9, chess.KING: 0}
-
-
-def _attack_value(board, uci):
-    """How violent a candidate is: mate > check > capture > promotion."""
-    try:
-        move = chess.Move.from_uci(uci)
-    except (ValueError, IndexError):
-        return -1
-    if move not in board.legal_moves:
-        return -1
-    value = 0
-    if board.is_capture(move):
-        victim = board.piece_at(move.to_square)
-        value += 3 + (_PIECE_VALUES.get(victim.piece_type, 1) if victim else 1)
-    if move.promotion:
-        value += 2
-    board.push(move)
-    if board.is_checkmate():
-        value += 100
-    elif board.is_check():
-        value += 4
-    board.pop()
-    return value
-
-
-def _elo_window(elo):
-    return 130 if elo <= 1600 else 105 if elo <= 1800 else 80 if elo <= 2000 else 60 if elo <= 2200 else 42
-
-
-def choose_styled(request, result):
-    """Apply the Patricia style to one engine result.
-
-    solid/original always take Patricia's top move (original additionally
-    means zero candidate tuning of any kind). balanced keeps the existing
-    human-like sampling. aggressive prefers the most violent candidate in
-    the Elo window; wild flattens the sampling and sometimes drops to a
-    weaker candidate on purpose.
-    """
-    top_move = result.get('move')
-    candidates = [c for c in (result.get('candidates') or [])
-                  if c.get('move') and isinstance(c.get('score_cp'), (int, float))]
-    style = request.style if request.style in STYLES else 'balanced'
-    if style in ('solid', 'original') or not candidates:
-        return top_move, f'patricia-{style}'
-    if style == 'aggressive':
-        board = chess.Board(request.fen)
-        window = _elo_window(request.elo)
-        best_score = max(c['score_cp'] for c in candidates)
-        pool = [c for c in candidates if c['score_cp'] >= best_score - window]
-        ranked = sorted(pool, key=lambda c: (-_attack_value(board, c['move']),
-                                             -c['score_cp'], c['move']))
-        if ranked and _attack_value(board, ranked[0]['move']) > 0:
-            return ranked[0]['move'], 'patricia-aggressive'
-        return top_move, 'patricia-aggressive'
-    if style == 'wild':
-        window = _elo_window(request.elo) * 2
-        best_score = max(c['score_cp'] for c in candidates)
-        pool = [c for c in candidates if c['score_cp'] >= best_score - window] or candidates
-        rng = random.Random(stable_int(request.persona, request.fen, 'wild'))
-        if len(pool) > 1 and rng.random() < .35:
-            return rng.choice(pool[1:])['move'], 'patricia-wild'
-        temperature = 90 + max(0, 2000 - request.elo) * .03
-        weights = [math.exp((c['score_cp'] - best_score) / temperature) for c in pool]
-        return rng.choices(pool, weights=weights, k=1)[0]['move'], 'patricia-wild'
-    if request.blunders:
-        return choose_candidate(request, result)
-    return top_move, 'patricia'
-
-
-def choose_candidate(request, result):
-    candidates=result.get('candidates') or []
-    if len(candidates)<2:
-        return result.get('move'), 'engine'
-    scored=[c for c in candidates if c.get('move') and isinstance(c.get('score_cp'),(int,float))]
-    if not scored:
-        return result.get('move'), 'engine'
-    top=max(c['score_cp'] for c in scored)
-    # Elo-limited window: lower levels may choose a plausible second/third move,
-    # while high levels stay close to the principal variation.
-    window=130 if request.elo<=1600 else 105 if request.elo<=1800 else 80 if request.elo<=2000 else 60 if request.elo<=2200 else 42
-    pool=[c for c in scored if c['score_cp']>=top-window]
-    if request.blunders and len(pool)>=2 and tactical_spot(request.fen):
-        # A level-sized blind spot: the same persona always slips the same
-        # way here, but only inside the plausible Elo window.
-        if is_slip(request.persona,request.fen,request.elo):
-            return pool[-1]['move'], f"human-slip-{len(candidates)}"
-    temp=95 if request.elo<=1600 else 72 if request.elo<=1800 else 55 if request.elo<=2000 else 40 if request.elo<=2200 else 28
-    weights=[math.exp((c['score_cp']-top)/temp) for c in pool]
-    # Persona-stable sampling: the same person picks the same candidate from
-    # the same position in every game, instead of reseeding per game token.
-    target=(stable_int(request.persona,request.fen)/65536)*sum(weights)
-    for candidate,weight in zip(pool,weights):
-        target-=weight
-        if target<=0:
-            return candidate['move'], f"hybrid-multipv-{len(candidates)}"
-    return pool[0]['move'], f"hybrid-multipv-{len(candidates)}"
 
 
 class InstanceLock:
@@ -214,6 +86,25 @@ def write_status(path, status):
         temp.replace(path)
     except OSError as exc:
         logging.warning('Status file unavailable (%s)', type(exc).__name__)
+
+
+def selected_preset(snapshot, specs):
+    """Resolve the panel level; Patricia is the only engine."""
+    return resolve_preset(snapshot['prefs']['elo'], specs)
+
+
+def engine_for_position(requested, preset, phase_budget, fen, specs):
+    """Patricia plays every position; missing binary keeps the preset name."""
+    return 'patricia' if specs['patricia'].available else preset.engine
+
+
+def scaled_think_ms(base_ms, multiplier=1.0, remaining_ms=None, panic=True):
+    """Phase- and panic-scaled Patricia think time, clamped to 50-4000 ms."""
+    ms = base_ms * multiplier
+    if panic:
+        ms = ms * panic_nodes(100, remaining_ms) / 100
+    return max(50, min(4000, round(ms)))
+
 
 
 def run(args, specs):

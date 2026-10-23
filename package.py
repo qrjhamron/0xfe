@@ -8,6 +8,7 @@ SOURCES = ['README.md', '.gitignore', 'requirements.txt', 'install.py', 'run.py'
            'presets.py', 'human_style.py',
            'setup_patricia.py', 'check_patricia.py', 'check_browser.py', 'check_auto_moves.py', 'check_premove.py',
            'check_premove_ui.py', 'check_premove_engine.py', 'check_native_board.py', 'check_time_management.py', 'check_engine_upgrade.py', 'check_adaptive_strength.py', 'check_windows_packaging.py', 'check_humanize.py', 'check_consistency.py', 'opening_book.py', 'package.py',
+           'coach_app/__init__.py', 'coach_app/main.py', 'coach_app/windows.py', 'coach_app/overlay.py', 'coach_app/controller.py', 'coach_app/geometry.py', 'coach_app/snapshot.py', 'coach_app/streaming.py', 'coach_app/README.md', 'run_app.py', 'check_desktop_app.py', 'requirements-app.txt',
            'windows/MoveCoach.spec', 'windows/MoveCoach.iss', 'windows/build_windows.ps1', 'windows/build_windows.bat', 'windows/README.md', '.github/workflows/windows-installer.yml']
 
 def main():

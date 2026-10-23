@@ -1,0 +1,30 @@
+name: Windows app (PySide6)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'coach_app/**'
+      - 'run_app.py'
+      - 'requirements-app.txt'
+      - 'windows/MoveCoachApp.spec'
+      - 'windows/build_app.ps1'
+      - '.github/workflows/windows-app.yml'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build app and run smoke test
+        shell: powershell
+        run: .\windows\build_app.ps1
+      - name: Upload app
+        uses: actions/upload-artifact@v4
+        with:
+          name: MoveCoachApp-Windows
+          path: dist/MoveCoachApp
+          if-no-files-found: error
