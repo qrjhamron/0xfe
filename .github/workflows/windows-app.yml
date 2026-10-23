@@ -3,13 +3,13 @@ name: Windows app (PySide6)
 on:
   workflow_dispatch:
   push:
-    paths:
-      - 'coach_app/**'
-      - 'run_app.py'
-      - 'requirements-app.txt'
-      - 'windows/MoveCoachApp.spec'
-      - 'windows/build_app.ps1'
-      - '.github/workflows/windows-app.yml'
+    branches:
+      - codex/pyside6-app
+    tags:
+      - 'move-coach-app-v*'
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -22,9 +22,20 @@ jobs:
       - name: Build app and run smoke test
         shell: powershell
         run: .\windows\build_app.ps1
-      - name: Upload app
+      - name: Upload app artifact
         uses: actions/upload-artifact@v4
         with:
           name: MoveCoachApp-Windows
           path: dist/MoveCoachApp
           if-no-files-found: error
+      - name: Zip app for release
+        if: startsWith(github.ref, 'refs/tags/move-coach-app-v')
+        shell: powershell
+        run: Compress-Archive -Path dist/MoveCoachApp -DestinationPath MoveCoachApp-Windows.zip
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/move-coach-app-v')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Move Coach App ${{ github.ref_name }}
+          files: MoveCoachApp-Windows.zip
