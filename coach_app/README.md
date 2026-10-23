@@ -1,9 +1,14 @@
 # Move Coach App (PySide6)
 
 Aplikasi desktop Windows: Chess.com berjalan di dalam jendela aplikasi
-(Qt WebEngine), panel kontrolnya native Qt dan tinggal di system tray,
-dan panah rekomendasi digambar oleh overlay Qt transparan — halaman
-Chess.com tidak diinjeksi apa pun, skrip snapshot hanya membaca papan.
+(Qt WebEngine), dan panah rekomendasi digambar oleh overlay Qt
+transparan — halaman Chess.com tidak diinjeksi apa pun, skrip snapshot
+hanya membaca papan. Panel pengaturan adalah **aplikasi terpisah**
+(`MoveCoachPanel.exe`, proses sendiri) yang terbuka otomatis di samping
+aplikasi utama; keduanya bertukar pengaturan dan status lewat
+`runtime/settings.json` dan `runtime/status.json`, jadi perubahan di
+panel langsung berlaku di papan. Panel juga bisa dibuka lagi dari tray
+atau menu "Panel Pengaturan" di jendela papan.
 
 - **Mode Streaming**: overlay panah dan jendela kontrol memakai
   `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)`, jadi keduanya

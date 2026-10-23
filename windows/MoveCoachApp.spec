@@ -1,4 +1,6 @@
-# PyInstaller spec for the PySide6 Move Coach app (Patricia-only).
+# PyInstaller spec: Move Coach main app + separate panel app (Patricia-only).
+# Both executables share one collected bundle via MERGE, so the panel exe
+# sits next to MoveCoach.exe without duplicating the Qt runtime.
 from pathlib import Path
 
 PROJECT = Path(SPECPATH).parent
@@ -32,11 +34,24 @@ a = Analysis(
     binaries=[(str(RUNTIME / 'patricia.exe'), 'runtime')],
     datas=[],
     hiddenimports=['coach_app.windows', 'coach_app.overlay', 'coach_app.controller',
+                   'coach_app.panel',
                    'PySide6.QtWebEngineCore', 'PySide6.QtWebEngineWidgets',
                    'PySide6.QtWebChannel'],
     excludes=['playwright', 'tkinter', 'matplotlib'],
     noarchive=False,
 )
+a_panel = Analysis(
+    [str(PROJECT / 'run_panel.py')],
+    pathex=[str(PROJECT)],
+    binaries=[],
+    datas=[],
+    hiddenimports=['coach_app.panel'],
+    excludes=['playwright', 'tkinter', 'matplotlib',
+              'PySide6.QtWebEngineCore', 'PySide6.QtWebEngineWidgets'],
+    noarchive=False,
+)
+MERGE((a, 'MoveCoach', 'MoveCoach'),
+      (a_panel, 'MoveCoachPanel', 'MoveCoachPanel'))
 pyz = PYZ(a.pure)
 exe = EXE(
     pyz,
@@ -49,10 +64,25 @@ exe = EXE(
     upx=False,
     console=False,
 )
+pyz_panel = PYZ(a_panel.pure)
+exe_panel = EXE(
+    pyz_panel,
+    a_panel.scripts,
+    [],
+    exclude_binaries=True,
+    name='MoveCoachPanel',
+    debug=False,
+    strip=False,
+    upx=False,
+    console=False,
+)
 coll = COLLECT(
     exe,
     a.binaries,
     a.datas,
+    exe_panel,
+    a_panel.binaries,
+    a_panel.datas,
     strip=False,
     upx=False,
     name='MoveCoachApp',

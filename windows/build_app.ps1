@@ -32,10 +32,17 @@ foreach ($Name in 'QtWebEngineCore.pyd', 'QtWebEngineWidgets.pyd',
     }
 }
 
+if (-not (Test-Path (Join-Path $Root 'dist\MoveCoachApp\MoveCoachPanel.exe'))) {
+    throw 'Bundled panel app missing: MoveCoachPanel.exe'
+}
+
 $env:QT_QPA_PLATFORM = 'offscreen'
 # Start-Process -Wait: a plain `&` call does not wait for a GUI-subsystem
 # exe, so $LASTEXITCODE never reflected the smoke result.
 $Smoke = Start-Process -FilePath (Join-Path $Root 'dist\MoveCoachApp\MoveCoach.exe') `
     -ArgumentList '--smoke' -Wait -PassThru
 if ($Smoke.ExitCode -ne 0) { throw "Move Coach app smoke test failed (exit $($Smoke.ExitCode))." }
+$PanelSmoke = Start-Process -FilePath (Join-Path $Root 'dist\MoveCoachApp\MoveCoachPanel.exe') `
+    -ArgumentList '--smoke' -Wait -PassThru
+if ($PanelSmoke.ExitCode -ne 0) { throw "Move Coach panel smoke test failed (exit $($PanelSmoke.ExitCode))." }
 Write-Host 'Created dist\MoveCoachApp\MoveCoach.exe (smoke OK)'

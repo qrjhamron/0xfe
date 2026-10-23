@@ -33,6 +33,10 @@ def _fail_friendly():
 
 
 def main():
+    if '--panel' in sys.argv:
+        # The settings panel is a separate app and needs no WebEngine.
+        from .panel import main as panel_main
+        return panel_main()
     if _webengine_missing():
         return _fail_friendly()
     from .windows import TrayApp, app_icon

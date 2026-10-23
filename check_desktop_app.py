@@ -80,6 +80,34 @@ assert 'Start-Process' in build_ps1 and '-Wait' in build_ps1, \
     'smoke test must wait for the GUI exe exit code'
 assert 'Bundled QtWebEngine file missing' in build_ps1, \
     'build must verify the bundled WebEngine files exist'
+panel = (root / 'coach_app/panel.py').read_text()
+store = (root / 'coach_app/settings_store.py').read_text()
+assert 'Panel Pengaturan' in panel and 'PRESETS' in panel and 'Mode Streaming' in panel
+assert 'settings.json' in store and 'status.json' in store
+assert 'MoveCoachPanel' in windows and 'launch_panel' in windows, \
+    'main app must open the separate panel app'
+assert 'load_settings' in windows and '_poll_settings' in windows, \
+    'main app must apply panel settings from the shared file'
+assert 'MERGE' in spec and 'MoveCoachPanel' in spec, \
+    'panel must build as its own exe sharing the bundle'
+assert 'MoveCoachPanel.exe' in build_ps1, 'build must smoke-test the panel exe'
+assert (root / 'run_panel.py').exists(), 'panel entry point missing'
+print('PASS: separate panel app bridged through shared settings/status files')
+# Settings/status bridge between the two apps round-trips through JSON.
+import tempfile
+from coach_app import settings_store as _store
+with tempfile.TemporaryDirectory() as _td:
+    _store.SETTINGS_PATH = Path(_td) / 'settings.json'
+    _store.STATUS_PATH = Path(_td) / 'status.json'
+    _s = _store.load_settings()
+    assert _s['streaming'] is False and _s['elo'] == 1500
+    _s['elo'] = 2000
+    _store.save_settings(_s)
+    assert _store.load_settings()['elo'] == 2000
+    _store.save_status('Nf3 · Skill 9')
+    assert _store.load_status().startswith('Nf3')
+print('PASS: settings/status bridge round-trips')
+
 print('PASS: native overlay, tray controls, and streaming exclusion are wired')
 print('PASS: missing QtWebEngine fails with install instructions, not a traceback')
 print('ALL DESKTOP APP CHECKS PASSED')

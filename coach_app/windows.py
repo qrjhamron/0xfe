@@ -1,21 +1,23 @@
 """Qt windows: embedded Chess.com board, native overlay, tray controls."""
 import json
+import subprocess
+import sys
 import time
+from pathlib import Path
 
 from PySide6.QtCore import QPoint, QPointF, Qt, QTimer, QUrl
 from PySide6.QtGui import QAction, QColor, QIcon, QMouseEvent, QPainter, QPixmap
 from PySide6.QtWebEngineCore import QWebEnginePage, QWebEngineProfile
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QHBoxLayout,
-                               QLabel, QMainWindow, QMenu, QPushButton,
-                               QSystemTrayIcon, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import QApplication, QMainWindow, QMenu, QSystemTrayIcon
 
 from app_paths import ROOT
-from presets import PRESETS
 
 from .controller import CoachController
 from .geometry import square_center
 from .overlay import ArrowOverlay
+from .settings_store import (load_settings, save_settings, save_status,
+                             settings_mtime)
 from .snapshot import SNAPSHOT_JS
 from .streaming import set_exclude_from_capture
 
@@ -127,108 +129,33 @@ class BoardWindow(QMainWindow):
         self.overlay.hide()
 
 
-class ControlWindow(QWidget):
-    def __init__(self, controller, board_window, tray):
-        super().__init__()
-        self.controller = controller
-        self.board_window = board_window
-        self.tray = tray
-        self.setWindowTitle('Move Coach — Kontrol')
-        self.resize(360, 560)
-        layout = QVBoxLayout(self)
-        title = QLabel('PATRICIA · Skill <b>—</b>')
-        title.setObjectName('skillLabel')
-        self.skill_label = title
-        layout.addWidget(title)
-        self.status = QLabel('Menyiapkan…')
-        layout.addWidget(self.status)
-        controller.on_status = self.status.setText
-
-        self.level_buttons = {}
-        grid = QWidget()
-        grid_layout = QVBoxLayout(grid)
-        row = None
-        for index, elo in enumerate(PRESETS):
-            if index % 3 == 0:
-                row = QHBoxLayout()
-                grid_layout.addLayout(row)
-            button = QPushButton(str(elo))
-            button.setCheckable(True)
-            button.clicked.connect(lambda _=False, e=elo: self.set_elo(e))
-            row.addWidget(button)
-            self.level_buttons[elo] = button
-        layout.addWidget(grid)
-
-        self.style = QComboBox()
-        self.style.addItem('Solid · selalu terbaik', 'solid')
-        self.style.addItem('Seimbang · manusiawi', 'balanced')
-        self.style.addItem('Agresif · menyerang', 'aggressive')
-        self.style.addItem('Liar · berani beda', 'wild')
-        self.style.addItem('Asli · tanpa tuning', 'original')
-        self.style.currentIndexChanged.connect(self._style_changed)
-        layout.addWidget(QLabel('Gaya Patricia'))
-        layout.addWidget(self.style)
-
-        self.enabled = QCheckBox('Rekomendasi aktif')
-        self.enabled.setChecked(True)
-        self.enabled.toggled.connect(
-            lambda v: self.controller.settings.__setitem__('enabled', v))
-        layout.addWidget(self.enabled)
-        self.auto_move = QCheckBox('Auto move (klik di dalam aplikasi)')
-        self.auto_move.toggled.connect(
-            lambda v: self.controller.settings.__setitem__('autoMove', v))
-        layout.addWidget(self.auto_move)
-        self.book = QCheckBox('Buku persona')
-        self.book.setChecked(True)
-        self.book.toggled.connect(
-            lambda v: self.controller.settings.__setitem__('openingBook', v))
-        layout.addWidget(self.book)
-        self.streaming = QCheckBox('Mode Streaming · sembunyikan panah & panel dari tangkapan layar')
-        self.streaming.toggled.connect(self._streaming_changed)
-        layout.addWidget(self.streaming)
-        show_board = QPushButton('Tampilkan Papan')
-        show_board.clicked.connect(self._show_board)
-        layout.addWidget(show_board)
-        self.set_elo(self.controller.settings['elo'])
-
-    def set_elo(self, elo):
-        self.controller.settings['elo'] = elo
-        for value, button in self.level_buttons.items():
-            button.setChecked(value == elo)
-        from engine_runtime import patricia_skill_for_elo
-        skill = patricia_skill_for_elo(elo)
-        self.skill_label.setText(f'PATRICIA · Skill <b>{skill}</b>')
-
-    def _style_changed(self):
-        self.controller.settings['style'] = self.style.currentData()
-
-    def _show_board(self):
-        self.board_window.show()
-        self.board_window.raise_()
-        self.board_window.activateWindow()
-
-    def _streaming_changed(self, enabled):
-        # Arrows and this control window vanish from capture; the board
-        # itself stays visible so the stream still shows the game.
-        set_exclude_from_capture(self.board_window.overlay, enabled)
-        set_exclude_from_capture(self, enabled)
-        self.status.setText('Mode Streaming aktif · panah tersembunyi dari siaran'
-                            if enabled else 'Mode Streaming mati')
+def panel_command():
+    """Command that launches the separate panel app."""
+    if getattr(sys, 'frozen', False):
+        sibling = Path(sys.executable).resolve().with_name('MoveCoachPanel.exe')
+        if sibling.exists():
+            return [str(sibling)]
+        return [sys.executable, '--panel']
+    return [sys.executable, str(ROOT / 'run_panel.py')]
 
 
 class TrayApp:
     def __init__(self, app):
         self.app = app
         self.controller = CoachController()
+        self.controller.settings.update(load_settings())
+        self.controller.on_status = self._on_status
+        self._last_status = None
+        self._settings_stamp = settings_mtime()
         self.board = BoardWindow(self.controller)
         self.tray = QSystemTrayIcon(app_icon(), app)
-        self.control = ControlWindow(self.controller, self.board, self.tray)
+        self.panel_proc = None
         menu = QMenu()
         menu.addAction('Papan', self._show_board)
-        menu.addAction('Kontrol', self.control.show)
+        menu.addAction('Panel Pengaturan', self.launch_panel)
         menu.addSeparator()
         self.stream_action = QAction('Mode Streaming', menu, checkable=True)
-        self.stream_action.toggled.connect(self.control.streaming.setChecked)
+        self.stream_action.toggled.connect(self._streaming_toggled)
         menu.addAction(self.stream_action)
         menu.addSeparator()
         menu.addAction('Keluar', self._quit)
@@ -236,7 +163,62 @@ class TrayApp:
         self.tray.setToolTip('Move Coach — Patricia')
         self.tray.activated.connect(self._tray_activated)
         self.tray.show()
+        panel_action = QAction('Panel Pengaturan', self.board)
+        panel_action.triggered.connect(self.launch_panel)
+        self.board.menuBar().addAction(panel_action)
+        self.board_stream_action = QAction('Mode Streaming', self.board,
+                                           checkable=True)
+        self.board_stream_action.toggled.connect(self._streaming_toggled)
+        self.board.menuBar().addAction(self.board_stream_action)
+        self._sync_streaming(bool(self.controller.settings.get('streaming')))
+        self.settings_timer = QTimer(self.board)
+        self.settings_timer.timeout.connect(self._poll_settings)
+        self.settings_timer.start(500)
         self.board.show()
+        # The panel is its own app; open it right away next to the board.
+        self.launch_panel()
+
+    def launch_panel(self):
+        if '--smoke' in sys.argv:
+            return
+        if self.panel_proc is not None and self.panel_proc.poll() is None:
+            return
+        try:
+            self.panel_proc = subprocess.Popen(panel_command())
+        except OSError:
+            self.panel_proc = None
+
+    def _poll_settings(self):
+        stamp = settings_mtime()
+        if stamp is None or stamp == self._settings_stamp:
+            return
+        self._settings_stamp = stamp
+        loaded = load_settings()
+        self.controller.settings.update(loaded)
+        self._sync_streaming(bool(loaded.get('streaming')))
+
+    def _sync_streaming(self, enabled):
+        # Arrows vanish from capture; the board itself stays visible so
+        # the stream still shows the game. The panel app excludes itself.
+        set_exclude_from_capture(self.board.overlay, enabled)
+        for action in (self.stream_action, self.board_stream_action):
+            if action.isChecked() != enabled:
+                action.blockSignals(True)
+                action.setChecked(enabled)
+                action.blockSignals(False)
+
+    def _streaming_toggled(self, enabled):
+        loaded = load_settings()
+        loaded['streaming'] = enabled
+        save_settings(loaded)
+        self._settings_stamp = settings_mtime()
+        self.controller.settings['streaming'] = enabled
+        self._sync_streaming(enabled)
+
+    def _on_status(self, text):
+        if text != self._last_status:
+            self._last_status = text
+            save_status(text)
 
     def _show_board(self):
         self.board.show()
@@ -245,9 +227,11 @@ class TrayApp:
 
     def _tray_activated(self, reason):
         if reason == QSystemTrayIcon.ActivationReason.Trigger:
-            self.control.show() if not self.control.isVisible() else self.control.hide()
+            self._show_board()
 
     def _quit(self):
+        if self.panel_proc is not None and self.panel_proc.poll() is None:
+            self.panel_proc.terminate()
         self.controller.close()
         self.tray.hide()
         self.app.quit()
